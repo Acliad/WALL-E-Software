@@ -1,0 +1,121 @@
+( pcb2gcode 2.5.0 )
+( Software-independent Gcode )
+
+( This file uses 3 drill bit sizes. )
+( Bit sizes: [0.0394inch] [0.0689inch] [0.1201inch] )
+
+G94       (Inches per minute feed rate.)
+G20       (Units == INCHES.)
+G91.1     (Incremental arc distance mode.)
+G90       (Absolute coordinates.)
+G00 S12000     (RPM spindle speed.)
+
+G00 Z0.39370 (Retract)
+T1
+M5      (Spindle stop.)
+G04 P1.00000
+(MSG, Change tool bit to drill size 0.0394inch)
+M6      (Tool change.)
+M0      (Temporary machine stop.)
+M3      (Spindle on clockwise.)
+G0 Z0.07874
+G04 P1.00000
+
+G1 F0.78740
+G0 X2.90200 Y0.62990
+G1 Z-0.09843
+G1 Z0.07874
+G0 X3.00200 Y0.62990
+G1 Z-0.09843
+G1 Z0.07874
+G0 X3.10200 Y0.62990
+G1 Z-0.09843
+G1 Z0.07874
+G0 X3.20200 Y0.62990
+G1 Z-0.09843
+G1 Z0.07874
+G0 X3.30200 Y0.62990
+G1 Z-0.09843
+G1 Z0.07874
+
+G00 Z0.39370 (Retract)
+T3
+M5      (Spindle stop.)
+G04 P1.00000
+(MSG, Change tool bit to drill size 0.0689inch)
+M6      (Tool change.)
+M0      (Temporary machine stop.)
+M3      (Spindle on clockwise.)
+G0 Z0.07874
+G04 P1.00000
+
+G1 F0.78740
+G0 X0.91890 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X1.31890 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X4.88350 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X5.28350 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X5.84020 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X6.24020 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X6.79690 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X7.19690 Y0.43310
+G1 Z-0.09843
+G1 Z0.07874
+
+G00 Z0.39370 (Retract)
+T4
+M5      (Spindle stop.)
+G04 P1.00000
+(MSG, Change tool bit to drill size 0.1201inch)
+M6      (Tool change.)
+M0      (Temporary machine stop.)
+M3      (Spindle on clockwise.)
+G0 Z0.07874
+G04 P1.00000
+
+G1 F0.78740
+G0 X1.01890 Y0.63310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X1.26890 Y0.53310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X4.98350 Y0.63310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X5.23350 Y0.53310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X5.94020 Y0.63310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X6.19020 Y0.53310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X6.89690 Y0.63310
+G1 Z-0.09843
+G1 Z0.07874
+G0 X7.14690 Y0.53310
+G1 Z-0.09843
+G1 Z0.07874
+
+G00 Z0.394 ( All done -- retract )
+
+M5      (Spindle off.)
+G04 P1.000000
+M9      (Coolant off.)
+M2      (Program end.)
+

@@ -1,0 +1,114 @@
+( pcb2gcode 2.5.0 )
+( Software-independent Gcode )
+
+( This file uses 3 drill bit sizes. )
+( Bit sizes: [0.0394inch] [0.0689inch] [0.1201inch] )
+
+G94       (Inches per minute feed rate.)
+G21       (Units == MM.)
+G91.1     (Incremental arc distance mode.)
+G90       (Absolute coordinates.)
+G00 S12000     (RPM spindle speed.)
+
+G00 Z10.0000 (Retract)
+T1
+M5      (Spindle stop.)
+(MSG, Change tool bit to drill size 0.0394inch)
+M6      (Tool change.)
+M0      (Temporary machine stop.)
+M3      (Spindle on clockwise.)
+G0 Z2.0000
+
+G1 F20.0000
+G0 X73.7108 Y15.9995
+G1 Z-2.5001
+G1 Z2.0000
+G0 X76.2508 Y15.9995
+G1 Z-2.5001
+G1 Z2.0000
+G0 X78.7908 Y15.9995
+G1 Z-2.5001
+G1 Z2.0000
+G0 X81.3308 Y15.9995
+G1 Z-2.5001
+G1 Z2.0000
+G0 X83.8708 Y15.9995
+G1 Z-2.5001
+G1 Z2.0000
+
+G00 Z10.0000 (Retract)
+T3
+M5      (Spindle stop.)
+(MSG, Change tool bit to drill size 0.0689inch)
+M6      (Tool change.)
+M0      (Temporary machine stop.)
+M3      (Spindle on clockwise.)
+G0 Z2.0000
+
+G1 F20.0000
+G0 X23.3401 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X33.5001 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X124.0409 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X134.2009 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X148.3411 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X158.5011 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X172.6413 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+G0 X182.8013 Y11.0007
+G1 Z-2.5001
+G1 Z2.0000
+
+G00 Z10.0000 (Retract)
+T4
+M5      (Spindle stop.)
+(MSG, Change tool bit to drill size 0.1201inch)
+M6      (Tool change.)
+M0      (Temporary machine stop.)
+M3      (Spindle on clockwise.)
+G0 Z2.0000
+
+G1 F20.0000
+G0 X25.8801 Y16.0807
+G1 Z-2.5001
+G1 Z2.0000
+G0 X32.2301 Y13.5407
+G1 Z-2.5001
+G1 Z2.0000
+G0 X126.5809 Y16.0807
+G1 Z-2.5001
+G1 Z2.0000
+G0 X132.9309 Y13.5407
+G1 Z-2.5001
+G1 Z2.0000
+G0 X150.8811 Y16.0807
+G1 Z-2.5001
+G1 Z2.0000
+G0 X157.2311 Y13.5407
+G1 Z-2.5001
+G1 Z2.0000
+G0 X175.1813 Y16.0807
+G1 Z-2.5001
+G1 Z2.0000
+G0 X181.5313 Y13.5407
+G1 Z-2.5001
+G1 Z2.0000
+
+G00 Z10.0076 ( All done -- retract )
+
+M5      (Spindle off.)
+M9      (Coolant off.)
+M2      (Program end.)
+

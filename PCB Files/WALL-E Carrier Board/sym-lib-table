@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "walle")(type "KiCad")(uri "${KIPRJMOD}/Libraries/symbols/walle.kicad_sym")(options "")(descr ""))
+)

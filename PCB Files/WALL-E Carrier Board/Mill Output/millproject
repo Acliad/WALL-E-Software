@@ -1,0 +1,37 @@
+back=../gerbers/WALL-E Carrier Board-B_Cu.gbr
+front=../gerbers/WALL-E Carrier Board-F_Cu.gbr
+outline=../gerbers/WALL-E Carrier Board-Edge_Cuts.gbr
+drill=../gerbers/WALL-E Carrier Board.drl
+
+metric=true
+
+mill-feed=900
+mill-speed=200
+mill-diameters=0.2
+zwork=-0.005inch
+extra-passes=1
+
+nog81=true
+drill-feed=20
+drill-side=auto
+drill-speed=12000
+zdrill=-1.8
+
+milldrill-diameter=3.175
+min-milldrill-hole-diameter=3.175
+zmilldrill=-1.8
+
+cut-side=back
+cut-feed=100
+cut-infeed=0.5
+cut-speed=10000
+cutter-diameter=3.175
+zbridges=-0.6000
+zcut=-1.8
+fill-outline=true
+
+zsafe=2
+zchange=10
+
+#zero-start=true
+mirror-axis=2.99in

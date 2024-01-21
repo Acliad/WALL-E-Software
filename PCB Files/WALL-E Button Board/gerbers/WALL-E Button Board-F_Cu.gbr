@@ -1,0 +1,59 @@
+G04 #@! TF.GenerationSoftware,KiCad,Pcbnew,7.0.8*
+G04 #@! TF.CreationDate,2024-01-14T08:30:56-06:00*
+G04 #@! TF.ProjectId,WALL-E Button Board,57414c4c-2d45-4204-9275-74746f6e2042,rev?*
+G04 #@! TF.SameCoordinates,PX2cd29c0PY69db9c0*
+G04 #@! TF.FileFunction,Copper,L1,Top*
+G04 #@! TF.FilePolarity,Positive*
+%FSLAX46Y46*%
+G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+G04 Created by KiCad (PCBNEW 7.0.8) date 2024-01-14 08:30:56*
+%MOMM*%
+%LPD*%
+G01*
+G04 APERTURE LIST*
+G04 #@! TA.AperFunction,ComponentPad*
+%ADD10C,7.500000*%
+G04 #@! TD*
+G04 #@! TA.AperFunction,ComponentPad*
+%ADD11R,1.700000X1.700000*%
+G04 #@! TD*
+G04 #@! TA.AperFunction,ComponentPad*
+%ADD12O,1.700000X1.700000*%
+G04 #@! TD*
+G04 APERTURE END LIST*
+D10*
+G04 #@! TO.P,H3,1,1*
+G04 #@! TO.N,GND*
+X155430000Y11000000D03*
+G04 #@! TD*
+G04 #@! TO.P,H2,1,1*
+G04 #@! TO.N,GND*
+X94930000Y11000000D03*
+G04 #@! TD*
+G04 #@! TO.P,H1,1,1*
+G04 #@! TO.N,GND*
+X5930000Y11000000D03*
+G04 #@! TD*
+G04 #@! TO.P,H4,1,1*
+G04 #@! TO.N,GND*
+X195930000Y11000000D03*
+G04 #@! TD*
+D11*
+G04 #@! TO.P,J1,1,Pin_1*
+G04 #@! TO.N,Net-(J1-Pin_1)*
+X120130000Y16000000D03*
+D12*
+G04 #@! TO.P,J1,2,Pin_2*
+G04 #@! TO.N,Net-(J1-Pin_2)*
+X122670000Y16000000D03*
+G04 #@! TO.P,J1,3,Pin_3*
+G04 #@! TO.N,Net-(J1-Pin_3)*
+X125210000Y16000000D03*
+G04 #@! TO.P,J1,4,Pin_4*
+G04 #@! TO.N,Net-(J1-Pin_4)*
+X127750000Y16000000D03*
+G04 #@! TO.P,J1,5,Pin_5*
+G04 #@! TO.N,GND*
+X130290000Y16000000D03*
+G04 #@! TD*
+M02*
