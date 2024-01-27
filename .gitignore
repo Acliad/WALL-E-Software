@@ -1,5 +1,38 @@
 playground/
 **/build
+
+# KiCAD
+# For PCBs designed using KiCad: https://www.kicad.org/
+# Format documentation: https://kicad.org/help/file-formats/
+
+# Temporary files
+PCB Files/**/*.000
+PCB Files/**/*.bak
+PCB Files/**/*.bck
+PCB Files/**/*.kicad_pcb-bak
+PCB Files/**/*.kicad_sch-bak
+PCB Files/**/*-backups
+PCB Files/**/*.kicad_prl
+PCB Files/**/*.kicad_pcb.lck
+PCB Files/**/*.kicad_sch.lck
+PCB Files/**/*.sch-bak
+PCB Files/**/*~
+PCB Files/**/_autosave-*
+PCB Files/**/*.tmp
+PCB Files/**/*-save.pro
+PCB Files/**/*-save.kicad_pcb
+PCB Files/**/fp-info-cache
+
+# Netlist files (exported from Eeschema)
+PCB Files/**/*.net
+
+# Autorouter files (exported from Pcbnew)
+PCB Files/**/*.dsn
+PCB Files/**/*.ses
+
+# Exported BOM files
+PCB Files/**/*.xml
+PCB Files/**/*.csv
  
 ###################################################################
 # Below is a collection of ignores for vscode and OS related files
