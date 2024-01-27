@@ -17,32 +17,48 @@ void setup_startup_animation() {
     // |            |
     // |            |
     // |            |
-    startup_animation.addKeyframe(0, 0);
+    startup_animation.addKeyframe(0, 80, false);
+
+    // Turn on the sun for the first beep
+    //             |____________|
+    //   \ | /     |            |
+    // - ( . ) -   |            |
+    //   / | \     |            |
+    //             |            |
+    //             |            |
+    //             |            |
+    //             |            |
+    //             |            |
+    //             |            |
+    startup_animation.addKeyframe(0, 1000, true);
+
 
     // |____________|
     // |            |
     // |            |
-    // |  ⋮   ⋮   ⋮  |
+    // |            |
+    // |            |
+    // |            |
+    // |            |
+    // |            |
     // |            |
     // |████████████|
     // |████████████|
-    // |████████████|
-    // |████████████|
-    // |████████████|
-    startup_animation.addKeyframe(5, 3000);
-    startup_animation.addPauseKeyframe(1000);
+    startup_animation.addKeyframe(2, 1000);
+    startup_animation.addPauseKeyframe(800);
 
     // |____________|
     // |████████████|
     // |████████████|
     // |████████████|
-    // |  ⋮   ⋮   ⋮  |
     // |████████████|
     // |████████████|
     // |████████████|
     // |████████████|
     // |████████████|
-    startup_animation.addKeyframe(15, 1000);
+    // |████████████|
+    // |████████████|
+    startup_animation.addKeyframe(10, 900);
 }
 
 void setup_animations() {

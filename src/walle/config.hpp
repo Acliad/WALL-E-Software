@@ -24,15 +24,15 @@
 #define SERVO_EYE_LEFT_IDX   (13)
 #define SERVO_EYE_RIGHT_IDX  (12)
 
-// Uncomment the following line to reverse the direction of the track motor
+// Uncomment a line to reverse the direction of the track motor
 // #define MOTOR_RIGHT_REVERSE_DIRECTION
 // #define MOTOR_LEFT_REVERSE_DIRECTION
 
 /*---- Audio Player Settings -------------------------------------------
 *  Various settings of the Audio Player module.
 *  -------------------------------------------------------------------*/
-// #define ENABLE_AUDIO // Comment this line to disable audio player
-#define DEFAULT_AUDIO_VOLUME (24)
-#define STARTUP_TRACK_INDEX (1) // Set to 0 if you don't want to play anything
+#define ENABLE_AUDIO // Comment this line to disable audio player
+#define DEFAULT_AUDIO_VOLUME (24) // NOTE: Max volume is 30
+#define STARTUP_TRACK_INDEX (1)   // NOTE: Set to 0 if you don't want to play anything
 
 #endif /* CONFIG_HPP */

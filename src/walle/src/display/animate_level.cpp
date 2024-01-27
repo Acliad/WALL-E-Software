@@ -1,26 +1,30 @@
 #include "animate_level.hpp"
 
 AnimateLevel::AnimateLevel()
-    : first_keyframe(), current_keyframe(), last_keyframe(), last_update_time_ms(), solar_bars(), num_bars_on() {}
+    : first_keyframe(), current_keyframe(), last_keyframe(), last_update_time_ms(), solar_bars(), num_bars_on(),
+      show_sun(false), running(false), time_between_bar_updates_ms(), num_bars_to_update(), incrementing(false) {
+}
 
-void AnimateLevel::addKeyframe(int num_bars_on, unsigned int duration_ms) {
+void AnimateLevel::addKeyframe(int num_bars_on, unsigned int duration_ms, bool show_sun) {
     // Creates Keyframe from the arguments and add it to the animation.  
     Keyframe* new_keyframe = new Keyframe;
     for(int i = 0; i < _BARS_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = i < num_bars_on;
     }
+    new_keyframe->show_sun = show_sun;
     new_keyframe->duration_ms = duration_ms;
     new_keyframe->next = nullptr;
 
     this->_appendKeyframe(new_keyframe);
 }
 
-void AnimateLevel::addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms) {
+void AnimateLevel::addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms, bool show_sun) {
     // Creates Keyframe from the arguments and add it to the animation.  
     Keyframe* new_keyframe = new Keyframe;
     for(int i = 0; i < _BARS_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = bar_status[i];
     }
+    new_keyframe->show_sun = show_sun;
     new_keyframe->duration_ms = duration_ms;
     new_keyframe->next = nullptr;   
 
@@ -60,6 +64,8 @@ void AnimateLevel::start() {
     // Start the animation by setting the current keyframe to the first keyframe and setting the running flag to true.
     this->current_keyframe = this->first_keyframe;
     this->last_keyframe = this->first_keyframe;
+    this->last_update_time_ms = millis();
+    this->time_between_bar_updates_ms = this->current_keyframe->duration_ms;
     // Force all the bars to match the first keyframe. Could use
     // solar_bars->setAllBars(this->current_keyframe->bar_status) but we also want to count the number of bars on so
     // loop manually.
@@ -68,6 +74,7 @@ void AnimateLevel::start() {
         this->solar_bars->setBar(i, this->current_keyframe->bar_status[i]);
         this->num_bars_on += this->current_keyframe->bar_status[i];
     }
+    this->solar_bars->setSun(this->current_keyframe->show_sun);
     this->running = true;
 }
 
@@ -81,31 +88,18 @@ void AnimateLevel::update() {
     // keyframe (current_keyframe is incremented when a keyframe finishes). If it is, check if the bars need to be
     // updated. If they do, update them. If it is not, calculate the time between each bar update and determine if we
     // are incrementing or decrementing the bars.
-    static int num_bars_to_update = 0; // Number of bars that need to be updated
-    static unsigned long time_between_bar_updates_ms = 0;
-    static bool incrementing = false;
 
     if(this->isRunning()) {
         // If the current keyframe is the same as the last keyframe, we're still updating the bars for this keyframe.
         if(this->current_keyframe == this->last_keyframe) {
-            // Check if enough time has passeded to update the bars. 
-            if(millis() - this->last_update_time_ms >= time_between_bar_updates_ms) {
-                if(incrementing && num_bars_to_update > 0) {
-                    this->solar_bars->setBar(this->num_bars_on, true);
-                    this->num_bars_on++;
-                } else if (num_bars_to_update > 0) {
-                    // need to subtract 1 from num_bars_on otherwise it turns off the bar above the last bar that was
-                    // turned on. Don't have to do this for incrementing case because we are trying to turn on the bar
-                    // above the last bar that was turned on.
-                    this->solar_bars->setBar(this->num_bars_on-1, false);
-                    this->num_bars_on--;
-                }
-                num_bars_to_update--;
-                this->last_update_time_ms = millis();
-                if(num_bars_to_update <= 0) { // Will be less than 0 if it started at 0 (i.e., a pause frame)
+            // Check if enough time has passeded to update the bars.
+            if (millis() - this->last_update_time_ms >= this->time_between_bar_updates_ms) {
+                this->_updateBars();
+                // Check if the keyframe is over
+                if (this->num_bars_to_update <= 0) { // Will be less than 0 if it started at 0 (e.g., a pause frame)
                     this->last_keyframe = this->current_keyframe;
                     this->current_keyframe = this->current_keyframe->next;
-                    if(this->current_keyframe == nullptr) {
+                    if (this->current_keyframe == nullptr) {
                         this->stop();
                     }
                 }
@@ -115,18 +109,38 @@ void AnimateLevel::update() {
             // Calculated how many bars changed from the previous keyframe to the current keyframe and if we're
             // incrementing or decrementing the bars. Then, determine the number of milliseconds between each bar. We
             // also need to update the last_keyframe to the current_keyframe.
-            num_bars_to_update = // Is < 0 if decrementing
+            this->num_bars_to_update = // Is < 0 if decrementing
                 this->_getNumberOfBarsToUpdate(this->last_keyframe->bar_status, this->current_keyframe->bar_status);
-            incrementing = num_bars_to_update >= 0;
-            num_bars_to_update = abs(num_bars_to_update); // Fix the sign
+            this->incrementing = this->num_bars_to_update >= 0;
+            this->num_bars_to_update = abs(this->num_bars_to_update); // Fix the sign
             // Could segfault if num_bars_to_update = 0 and we still want to way for duration_ms to pass, so set 1 as 
             // the minimum divide by value here. This forces time_between_bar_updates_ms to be equal to duration_ms if
-            // there are no bars to update 
-            time_between_bar_updates_ms = this->current_keyframe->duration_ms / max(num_bars_to_update, 1);
+            // there are no bars to update. Subtracting 1 since we'll immediately update the bars once.
+            this->time_between_bar_updates_ms =
+                this->current_keyframe->duration_ms / max(this->num_bars_to_update - 1, 1);
 
+            // Set the sun status
+            this->solar_bars->setSun(this->current_keyframe->show_sun);
             this->last_keyframe = this->current_keyframe;
+            // Update bars for start of frame
+            this->_updateBars();
         }
     }
+}
+
+void AnimateLevel::_updateBars() {
+    if (this->incrementing && this->num_bars_to_update > 0) {
+        this->solar_bars->setBar(this->num_bars_on, true);
+        this->num_bars_on++;
+    } else if (this->num_bars_to_update > 0) {
+        // need to subtract 1 from num_bars_on otherwise it turns off the bar above the last bar that was
+        // turned on. Don't have to do this for incrementing case because we are trying to turn on the bar
+        // above the last bar that was turned on.
+        this->solar_bars->setBar(this->num_bars_on - 1, false);
+        this->num_bars_on--;
+    }
+    this->num_bars_to_update--;
+    this->last_update_time_ms = millis();
 }
 
 Keyframe *AnimateLevel::getCurrentKeyframe() { 

@@ -43,8 +43,8 @@ class NavigationController {
     // button was released since the last time the function was called. WasPressed will clear the WasReleased state and
     // vice versa.
 
-    void setController(GamepadPtr controller);
-    GamepadPtr getController();
+    void setGamepad(GamepadPtr controller);
+    GamepadPtr getGamepad();
 
     bool upIsPressed();
     bool downIsPressed();

@@ -13,4 +13,13 @@
 #define _DISPLAY_COLOR            TFT_YELLOW
 #define _DISPLAY_BACKGROUND_COLOR TFT_BLACK
 
+
+/********** Sun Defines **********/
+#define _DISPLAY_SUN_INNER_DIAMETER 50
+#define _DISPLAY_SUN_OUTER_DIAMETER 90
+#define _DISPLAY_SUN_LINE_WIDTH     10
+#define _DISPLAY_SUN_SPACING        10
+#define _DISPLAY_SUN_NUM_RAYS       12
+
+
 #endif

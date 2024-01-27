@@ -41,6 +41,7 @@
 // animations become more complex, we can change this.
 struct Keyframe {
     bool bar_status[_BARS_NUM_BARS];
+    bool show_sun;
     unsigned int duration_ms;
     Keyframe* next;
 };
@@ -73,8 +74,8 @@ struct Keyframe {
 class AnimateLevel {
 public:
     AnimateLevel();
-    void addKeyframe(int num_bars_on, unsigned int duration_ms);
-    void addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms);
+    void addKeyframe(int num_bars_on, unsigned int duration_ms, bool show_sun = true);
+    void addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms, bool show_sun = true);
     void addPauseKeyframe(unsigned int duration_ms);
     void start();
     void stop();
@@ -91,11 +92,16 @@ private:
     Keyframe* last_keyframe; // Keyframe we were on last time update() was called. Initialzes to first_keyframe
     SolarBars* solar_bars;
     unsigned int num_bars_on;
+    bool show_sun;
     bool running;
     unsigned long last_update_time_ms;
+    unsigned long time_between_bar_updates_ms;
+    int num_bars_to_update; // Number of bars that need to be updated
+    bool incrementing;
 
     void _appendKeyframe(Keyframe *keyframe);
     int _getNumberOfBarsToUpdate(bool last_bar_status[_BARS_NUM_BARS], bool current_bar_status[_BARS_NUM_BARS]);
+    void _updateBars();
 };
 
 

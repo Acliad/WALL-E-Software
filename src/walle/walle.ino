@@ -128,16 +128,16 @@ void setup() {
     motor_l.set_acceleration(motor_acceleration_per_ss);
 
     /*----------- Controllers ----------------------------*/
-    Serial.println("Initializing Controller...");
-    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
-    // Calling this can fix some issues with the controller not connecting
-    BP32.forgetBluetoothKeys();
-    Serial.println("Waiting for controller to connect...");
-    while (!isGamepadConnected()) {
-        // Waiting...
-        BP32.update();
-        delay(100); // Not necessary, just prevents pinging isConnected() a ton
-    }
+    // Serial.println("Initializing Controller...");
+    // BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+    // // Calling this can fix some issues with the controller not connecting
+    // BP32.forgetBluetoothKeys();
+    // Serial.println("Waiting for controller to connect...");
+    // while (!isGamepadConnected()) {
+    //     // Waiting...
+    //     BP32.update();
+    //     delay(100); // Not necessary, just prevents pinging isConnected() a ton
+    // }
 
 /***************************************************************
  *                     DFMini Audio Driver                      *
@@ -183,14 +183,12 @@ void loop() {
 #ifdef ENABLE_AUDIO
     dfmp3.loop();
     dfmp3_status = dfmp3.getStatus();
-    circle_pressed = Ps3.data.analog.button.circle;
-    if (!circle_pressed_last && circle_pressed && (dfmp3_status.state != DfMp3_StatusState_Playing)) {
+    if (aux_controller.circleWasPressed() && (dfmp3_status.state != DfMp3_StatusState_Playing)) {
         Serial.print("Playing Track #");
         Serial.println(audio_current_track + 1);
         dfmp3.playMp3FolderTrack(audio_current_track + 1); // +1 for 1 indexing of filenames
         audio_current_track = (audio_current_track + 1) % audio_num_tracks;
     }
-    circle_pressed_last = circle_pressed;
 #endif
 
     // Adjust the motor acceleration curve if button pressed
@@ -386,8 +384,8 @@ class Mp3Notify {
 void onConnectedGamepad(GamepadPtr gp) {
     bool foundEmptySlot = false;
     for (int i = 0; i < MAX_NUM_GAMEPADS; i++) {
-        if (controllers[i]->getController() == nullptr) {
-            controllers[i]->setController(gp);
+        if (controllers[i]->getGamepad() == nullptr) {
+            controllers[i]->setGamepad(gp);
             foundEmptySlot = true;
             Serial.printf("CALLBACK: Gamepad is connected, index=%d\n", i);
             break;
@@ -410,9 +408,9 @@ void onDisconnectedGamepad(GamepadPtr gp) {
     bool foundGamepad = false;
 
     for (int i = 0; i < MAX_NUM_GAMEPADS; i++) {
-        if (controllers[i]->getController() == gp) {
+        if (controllers[i]->getGamepad() == gp) {
             Serial.printf("CALLBACK: Gamepad is disconnected from index=%d\n", i);
-            controllers[i]->setController(nullptr);
+            controllers[i]->setGamepad(nullptr);
             foundGamepad = true;
             break;
         }
@@ -430,7 +428,7 @@ void onDisconnectedGamepad(GamepadPtr gp) {
  */
 bool isGamepadConnected() {
     for (int i = 0; i < MAX_NUM_GAMEPADS; i++) {
-        if (controllers[i]->getController() != nullptr) {
+        if (controllers[i]->getGamepad() != nullptr) {
             return true;
         }
     }

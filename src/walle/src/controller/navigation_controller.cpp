@@ -5,11 +5,11 @@ NavigationController::NavigationController()
       _buttonWasPressed(0), _buttonWasReleased(0) {
 }
 
-void NavigationController::setController(GamepadPtr controller) {
+void NavigationController::setGamepad(GamepadPtr controller) {
     _controller = controller;
 }
 
-GamepadPtr NavigationController::getController() {
+GamepadPtr NavigationController::getGamepad() {
     return _controller;
 }
 

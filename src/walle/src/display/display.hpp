@@ -21,17 +21,9 @@
 #include "animate_level.hpp"
 #include "HelveticaBoldSolar29.h"
 
-/********** Sun Defines **********/
-#define _DISPLAY_SUN_INNER_DIAMETER 40
-#define _DISPLAY_SUN_OUTER_DIAMETER 70
-#define _DISPLAY_SUN_LINE_WIDTH     8
-#define _DISPLAY_SUN_SPACING        8
-#define _DISPLAY_SUN_NUM_RAYS       12
-
 /********** Font Defines **********/
 #define _DISPLAY_FONT_SIZE 4
 #define _DISPLAY_FONT_NAME HelveticaBoldSolar29
-
 
 /**
  * @brief Class for controlling the solar display on a WALL-E robot. This class is responsible for drawing the solar 
