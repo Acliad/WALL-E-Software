@@ -1923,6 +1923,13 @@
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 41b9a46d-a7b2-4535-b534-67f55c3c0371)
   )
+  (text_box "TODO:\nMove button pins to ones with internal PULLUPs"
+    (at 86.36 91.44 0) (size 43.18 13.97)
+    (stroke (width -0.0001) (type default))
+    (fill (type none))
+    (effects (font (size 2.032 2.032) (thickness 0.4064) bold (color 0 194 0 1)) (justify left top))
+    (uuid c297b5f2-e37a-49e7-af83-4a8991cca520)
+  )
   (text_box "SDA/SCL pulled up on module"
     (at 96.52 58.42 0) (size 17.78 5.08)
     (stroke (width 0) (type default))
