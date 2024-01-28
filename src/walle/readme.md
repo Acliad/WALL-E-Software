@@ -35,5 +35,5 @@ void setup_animations() {
 Now your variable ```my_animation``` will be available to use in the main sketch. 
 
 ### Notes
-- A keyframe will end with the latest update. I.e., if no bars are on and the keyframe is set to turn two bars on over one second, the first bar will come on at 0.5 seconds and the second bar will come on at 1 second. This means that no bar will ever change at the begining of a keyframe unless the duration is set to 0.
+- A keyframe with a single change will perform that change at the beginning of the keyframe. For example, if 2 bars are on and you request 3 to be on with a duration of 1 second, the 3rd bar will turn on immediately and the keyframe will wait for 1 second to complete. If you have two or more changes in a keyframe, the changes will be evenly distributed throughout the duration of the keyframe, ending with a change. For example, if 2 bars are on and you request 5 to be on with a duration of 1 second, the 3rd bar will turn on immediately, the 4th bar will turn on after 0.5 seconds, and the 5th bar will turn on after 1 second.
 - The sun's status is always evaluated at the beginning of a keyframe.

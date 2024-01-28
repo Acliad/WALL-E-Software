@@ -15,15 +15,15 @@
 #define DISPLAY_HPP
 
 #include <Arduino.h>
-#include <TFT_eSPI.h>
 
+#include "display_common.hpp"
 #include "solar_bars.hpp"
 #include "animate_level.hpp"
-#include "HelveticaBoldSolar29.h"
+#include "EurostileBold31.h"
 
 /********** Font Defines **********/
-#define _DISPLAY_FONT_SIZE 4
-#define _DISPLAY_FONT_NAME HelveticaBoldSolar29
+#define _DISPLAY_FONT_SIZE 4 // NOTE: This does not apply to smooth/TTFs like EurostileBold29
+#define _DISPLAY_FONT_NAME EurostileBold31
 
 /**
  * @brief Class for controlling the solar display on a WALL-E robot. This class is responsible for drawing the solar 
