@@ -201,6 +201,14 @@ int NavigationController::thumbstickY() {
     }
 }
 
+float NavigationController::thumbstickXNorm() {
+    return (float) this->thumbstickX() / (float) CONTROLLER_THUMBSTICK_MAX;
+}
+
+float NavigationController::thumbstickYNorm() {
+    return (float) this->thumbstickY() / (float) CONTROLLER_THUMBSTICK_MAX;
+}
+
 void NavigationController::update() {
     // Updates the current state of all the buttons. First calls BP32.update(), then checks if any buttons have changed.
 

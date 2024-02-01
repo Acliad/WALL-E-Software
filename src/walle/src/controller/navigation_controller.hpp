@@ -86,8 +86,10 @@ class NavigationController {
     bool psWasReleased();
 
     // Thumbstick
-    int thumbstickX();
-    int thumbstickY();
+    int   thumbstickX();
+    int   thumbstickY();
+    float thumbstickXNorm();
+    float thumbstickYNorm();
 
     void update();
 
