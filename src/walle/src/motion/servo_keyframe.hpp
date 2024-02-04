@@ -1,7 +1,7 @@
 /**
- * @file head_keyframe.hpp
+ * @file servo_keyframe.hpp
  * @author Isaac Rex (@Acliad)
- * @brief A class for keyframes in head animations. This class is intended to be used with the HeadAnimation class.
+ * @brief A class for keyframes in head animations. This class is intended to be used with the ServoAnimation class.
  * Provides an interface for setting keyframes as servo positions, ramp curve, and duration of the keyframe.
  * @version 0.1
  * @date 2023-10-15
@@ -10,17 +10,17 @@
  *
  */
 
-#ifndef HEAD_KEYFRAME_HPP
-#define HEAD_KEYFRAME_HPP
+#ifndef SERVO_KEYFRAME_HPP
+#define SERVO_KEYFRAME_HPP
 
 #include "servo_motor.hpp"
 #include <Arduino.h>
 #include <Ramp.h>
 
-class HeadKeyframe {
+class ServoKeyframe {
   public:
-    HeadKeyframe(unsigned long duration_ms);
-    ~HeadKeyframe();
+    ServoKeyframe(unsigned long duration_ms);
+    ~ServoKeyframe();
 
     void add_servo_angle(ServoMotor *servo, float angle, ramp_mode ramp_mode = QUADRATIC_INOUT);
     void add_servo_scalar(ServoMotor *servo, float scalar, ramp_mode ramp_mode = QUADRATIC_INOUT);
@@ -30,27 +30,27 @@ class HeadKeyframe {
     // Update the internal Ramp state for all the servos in this keyframe
     void update_keyframe();
 
-    void set_next(HeadKeyframe *next);
-    void set_prev(HeadKeyframe *prev);
+    void set_next(ServoKeyframe *next);
+    void set_prev(ServoKeyframe *prev);
 
     unsigned long get_duration_ms();
 
-    HeadKeyframe *get_next();
-    HeadKeyframe *get_prev();
+    ServoKeyframe *get_next();
+    ServoKeyframe *get_prev();
 
   private:
-    struct servo_keyframe {
+    struct servo_node {
         ServoMotor     *_servo;
         float           _target_scalar;
         ramp_mode       _ramp_mode;
-        servo_keyframe *_next;
+        servo_node *_next;
     };
     unsigned long _duration_ms;
 
-    HeadKeyframe *_next;
-    HeadKeyframe *_prev;
+    ServoKeyframe *_next;
+    ServoKeyframe *_prev;
 
-    servo_keyframe *_head;
+    servo_node *_head;
 };
 
-#endif // KEYFRAME_HEAD_HPP
+#endif // SERVO_KEYFRAME_HPP

@@ -1,23 +1,23 @@
-#include "head_animation.hpp"
+#include "animate_servo.hpp"
 
-HeadAnimation::HeadAnimation()
+ServoAnimation::ServoAnimation()
     : _head(nullptr), _current_keyframe(nullptr), _frame_start_time_ms(0), _playing(false),
       _keyframe_has_started(false) {
 }
 
-HeadAnimation::~HeadAnimation() {
+ServoAnimation::~ServoAnimation() {
     // Iterate through the keyframes and delete them
-    HeadKeyframe *current = _head;
+    ServoKeyframe *current = _head;
     while (current != nullptr) {
-        HeadKeyframe *next = current->get_next();
+        ServoKeyframe *next = current->get_next();
         delete current;
         current = next;
     }
 }
 
-void HeadAnimation::add_keyframe(HeadKeyframe *keyframe) {
+void ServoAnimation::add_keyframe(ServoKeyframe *keyframe) {
     // Find the end of the linked list and add the new keyframe
-    HeadKeyframe *current = _head;
+    ServoKeyframe *current = _head;
     if (current == nullptr) {
         _head = keyframe;
     } else {
@@ -28,7 +28,7 @@ void HeadAnimation::add_keyframe(HeadKeyframe *keyframe) {
     }
 }
 
-void HeadAnimation::play() {
+void ServoAnimation::play() {
     // Start the animation
     _playing = true;
     _current_keyframe = _head;
@@ -36,13 +36,13 @@ void HeadAnimation::play() {
     _frame_start_time_ms = millis();
 }
 
-void HeadAnimation::stop() {
+void ServoAnimation::stop() {
     // Stop the animation
     _playing = false;
     _current_keyframe = _head;
 }
 
-void HeadAnimation::update() {
+void ServoAnimation::update() {
     // Check if the animation is running, if not, stop
     if (!_playing) {
         return;
@@ -75,6 +75,6 @@ void HeadAnimation::update() {
     _current_keyframe->update_keyframe();
 }
 
-bool HeadAnimation::isPlaying() {
+bool ServoAnimation::isPlaying() {
     return _playing;
 }

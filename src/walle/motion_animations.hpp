@@ -2,15 +2,15 @@
 #define MOTION_ANIMATIONS_HPP
 
 #include "contexts.hpp"
-#include "src/motion/head_animation.hpp"
+#include "src/motion/animate_servo.hpp"
 
 
 namespace MotionAnimations {
-    extern HeadAnimation cock_left;
-    extern HeadAnimation cock_right;
-    extern HeadAnimation sad;
-    extern HeadAnimation curious_track;
-    extern HeadAnimation wiggle_eyes;
+    extern ServoAnimation cock_left;
+    extern ServoAnimation cock_right;
+    extern ServoAnimation sad;
+    extern ServoAnimation curious_track;
+    extern ServoAnimation wiggle_eyes;
     
     void setup_animations(ServoContext servos);
 }

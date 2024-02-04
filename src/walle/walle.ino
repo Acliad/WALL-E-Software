@@ -108,7 +108,7 @@ Button* buttons[] = {&button_record, &button_play, &button_stop, &button_sun};
 
 /*----------- General ------------------------------------*/
 Stats loop_stats = Stats(0.99);
-HeadAnimation* head_animations[] = {&MotionAnimations::cock_left, &MotionAnimations::wiggle_eyes, &MotionAnimations::sad,
+ServoAnimation* head_animations[] = {&MotionAnimations::cock_left, &MotionAnimations::wiggle_eyes, &MotionAnimations::sad,
                                    &MotionAnimations::curious_track};
 ServoPlayer& servo_player = ServoPlayer::getInstance();
 

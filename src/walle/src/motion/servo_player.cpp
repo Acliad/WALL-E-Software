@@ -10,7 +10,7 @@ ServoPlayer& ServoPlayer::getInstance() {
     return instance;
 }
 
-void ServoPlayer::play(HeadAnimation *animation) {
+void ServoPlayer::play(ServoAnimation *animation) {
     // Play the animation
     _current_animation = animation;
     _current_animation->play();

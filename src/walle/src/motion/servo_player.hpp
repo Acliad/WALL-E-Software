@@ -1,7 +1,7 @@
 #ifndef SERVO_PLAYER_H
 #define SERVO_PLAYER_H
 
-#include "head_animation.hpp"
+#include "animate_servo.hpp"
 
 class ServoPlayer {
 public:
@@ -11,7 +11,7 @@ public:
 
     static ServoPlayer& getInstance();
 
-    void play(HeadAnimation* animation);
+    void play(ServoAnimation* animation);
     void stop();
     bool isPlaying();
     void update();
@@ -19,7 +19,7 @@ public:
 private:
     ServoPlayer();
 
-    HeadAnimation* _current_animation;
+    ServoAnimation* _current_animation;
 };
 
 #endif // SERVO_PLAYER_H

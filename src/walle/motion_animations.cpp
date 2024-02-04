@@ -3,24 +3,24 @@
 
 namespace MotionAnimations {
 // Define new animations here
-HeadAnimation cock_left     = HeadAnimation();
-HeadAnimation cock_right    = HeadAnimation();
-HeadAnimation sad           = HeadAnimation();
-HeadAnimation curious_track = HeadAnimation();
-HeadAnimation wiggle_eyes   = HeadAnimation();
+ServoAnimation cock_left     = ServoAnimation();
+ServoAnimation cock_right    = ServoAnimation();
+ServoAnimation sad           = ServoAnimation();
+ServoAnimation curious_track = ServoAnimation();
+ServoAnimation wiggle_eyes   = ServoAnimation();
 
 // Create setup functions for each animation.
 // NOTE: Don't forget to call these functions in setup_animations().
 void setup_cock_left(ServoContext servos) {
     // cock_left cocks WALL-E's head to the left by settings the left eye to the minimum angle and the right eye to the
     // max angle
-    HeadKeyframe *cock_left_keyframe_1 = new HeadKeyframe(1000);
+    ServoKeyframe *cock_left_keyframe_1 = new ServoKeyframe(1000);
     cock_left_keyframe_1->add_servo_scalar(servos.servo_eye_left, 1.0);
     cock_left_keyframe_1->add_servo_scalar(servos.servo_eye_right, 0.75);
     // Pause keyframe
-    HeadKeyframe *cock_left_keyframe_2 = new HeadKeyframe(4000);
+    ServoKeyframe *cock_left_keyframe_2 = new ServoKeyframe(4000);
     // Return to neutral
-    HeadKeyframe *cock_left_keyframe_3 = new HeadKeyframe(1000);
+    ServoKeyframe *cock_left_keyframe_3 = new ServoKeyframe(1000);
     cock_left_keyframe_3->add_servo_scalar(servos.servo_eye_left, 0.0);
     cock_left_keyframe_3->add_servo_scalar(servos.servo_eye_right, 0.0);
 
@@ -32,13 +32,13 @@ void setup_cock_left(ServoContext servos) {
 void setup_cock_right(ServoContext servos) {
     // cock_right cocks WALL-E's head to the left by settings the left eye to the minimum angle and the right eye to the
     // max angle
-    HeadKeyframe *cock_right_keyframe_1 = new HeadKeyframe(1000);
+    ServoKeyframe *cock_right_keyframe_1 = new ServoKeyframe(1000);
     cock_right_keyframe_1->add_servo_scalar(servos.servo_eye_left, 1.0);
     cock_right_keyframe_1->add_servo_scalar(servos.servo_eye_right, 0.75);
     // Pause keyframe
-    HeadKeyframe *cock_right_keyframe_2 = new HeadKeyframe(4000);
+    ServoKeyframe *cock_right_keyframe_2 = new ServoKeyframe(4000);
     // Return to neutral
-    HeadKeyframe *cock_right_keyframe_3 = new HeadKeyframe(1000);
+    ServoKeyframe *cock_right_keyframe_3 = new ServoKeyframe(1000);
     cock_right_keyframe_3->add_servo_scalar(servos.servo_eye_left, 0.0);
     cock_right_keyframe_3->add_servo_scalar(servos.servo_eye_right, 0.0);
 
@@ -50,16 +50,16 @@ void setup_cock_right(ServoContext servos) {
 void setup_sad(ServoContext servos) {
     // Make WALL-E look sad by putting both eyes down, then tilting the head down
     // Eyes droop
-    HeadKeyframe *sad_keyframe1 = new HeadKeyframe(2000);
+    ServoKeyframe *sad_keyframe1 = new ServoKeyframe(2000);
     sad_keyframe1->add_servo_scalar(servos.servo_eye_left, -1.0);
     sad_keyframe1->add_servo_scalar(servos.servo_eye_right, 1.0);
     // Tilt head down
-    HeadKeyframe *sad_keyframe2 = new HeadKeyframe(2000);
+    ServoKeyframe *sad_keyframe2 = new ServoKeyframe(2000);
     sad_keyframe2->add_servo_scalar(servos.servo_neck_pitch, -0.8);
     // Pause
-    HeadKeyframe *sad_keyframe3 = new HeadKeyframe(4000);
+    ServoKeyframe *sad_keyframe3 = new ServoKeyframe(4000);
     // Reset
-    HeadKeyframe *sad_keyframe4 = new HeadKeyframe(2000);
+    ServoKeyframe *sad_keyframe4 = new ServoKeyframe(2000);
     sad_keyframe4->add_servo_scalar(servos.servo_eye_left, 0.0);
     sad_keyframe4->add_servo_scalar(servos.servo_eye_right, 0.0);
     sad_keyframe4->add_servo_scalar(servos.servo_neck_pitch, 0.0);
@@ -73,23 +73,23 @@ void setup_sad(ServoContext servos) {
 
 void setup_curious_track(ServoContext servos) {
     // Make WALL-E look like he's tracking something on the ground
-    HeadKeyframe *curious_track_keyframe1 = new HeadKeyframe(2000);
+    ServoKeyframe *curious_track_keyframe1 = new ServoKeyframe(2000);
     // Looks down and to the left a little
     curious_track_keyframe1->add_servo_scalar(servos.servo_neck_pitch, -0.6);
     curious_track_keyframe1->add_servo_scalar(servos.servo_neck_yaw, -0.5);
     // Cock eyes
-    HeadKeyframe *curious_track_keyframe2 = new HeadKeyframe(1000);
+    ServoKeyframe *curious_track_keyframe2 = new ServoKeyframe(1000);
     curious_track_keyframe2->add_servo_scalar(servos.servo_eye_left, 0.7);
     curious_track_keyframe2->add_servo_scalar(servos.servo_eye_right, 0.5);
     // Track the object from left to right
-    HeadKeyframe *curious_track_keyframe3 = new HeadKeyframe(6000);
+    ServoKeyframe *curious_track_keyframe3 = new ServoKeyframe(6000);
     curious_track_keyframe3->add_servo_scalar(servos.servo_neck_yaw, 0.5);
     curious_track_keyframe3->add_servo_scalar(servos.servo_eye_left, 0.0);
     curious_track_keyframe3->add_servo_scalar(servos.servo_eye_right, 0.0);
     // Pause
-    HeadKeyframe *curious_track_keyframe4 = new HeadKeyframe(1000);
+    ServoKeyframe *curious_track_keyframe4 = new ServoKeyframe(1000);
     // Reset
-    HeadKeyframe *curious_track_keyframe5 = new HeadKeyframe(1000);
+    ServoKeyframe *curious_track_keyframe5 = new ServoKeyframe(1000);
     curious_track_keyframe5->add_servo_scalar(servos.servo_neck_pitch, 0.0);
     curious_track_keyframe5->add_servo_scalar(servos.servo_neck_yaw, 0.0);
     curious_track_keyframe5->add_servo_scalar(servos.servo_eye_left, 0.0);
@@ -105,23 +105,23 @@ void setup_curious_track(ServoContext servos) {
 
 void setup_wiggle_eyes(ServoContext servos) {
     // Make WALL-E wiggle his eyes in excitingment
-    HeadKeyframe *wiggle_eyes_keyframe1 = new HeadKeyframe(500);
+    ServoKeyframe *wiggle_eyes_keyframe1 = new ServoKeyframe(500);
     wiggle_eyes_keyframe1->add_servo_scalar(servos.servo_eye_left, 0.5);
     wiggle_eyes_keyframe1->add_servo_scalar(servos.servo_eye_right, -0.5);
     // Wiggle other direction
-    HeadKeyframe *wiggle_eyes_keyframe2 = new HeadKeyframe(500);
+    ServoKeyframe *wiggle_eyes_keyframe2 = new ServoKeyframe(500);
     wiggle_eyes_keyframe2->add_servo_scalar(servos.servo_eye_left, -0.5);
     wiggle_eyes_keyframe2->add_servo_scalar(servos.servo_eye_right, 0.5);
     // Repeat
-    HeadKeyframe *wiggle_eyes_keyframe3 = new HeadKeyframe(500);
+    ServoKeyframe *wiggle_eyes_keyframe3 = new ServoKeyframe(500);
     wiggle_eyes_keyframe3->add_servo_scalar(servos.servo_eye_left, 0.5);
     wiggle_eyes_keyframe3->add_servo_scalar(servos.servo_eye_right, -0.5);
     // Wiggle other direction
-    HeadKeyframe *wiggle_eyes_keyframe4 = new HeadKeyframe(500);
+    ServoKeyframe *wiggle_eyes_keyframe4 = new ServoKeyframe(500);
     wiggle_eyes_keyframe4->add_servo_scalar(servos.servo_eye_left, -0.5);
     wiggle_eyes_keyframe4->add_servo_scalar(servos.servo_eye_right, 0.5);
     // Reset
-    HeadKeyframe *wiggle_eyes_keyframe5 = new HeadKeyframe(250);
+    ServoKeyframe *wiggle_eyes_keyframe5 = new ServoKeyframe(250);
     wiggle_eyes_keyframe5->add_servo_scalar(servos.servo_eye_left, 0.0);
     wiggle_eyes_keyframe5->add_servo_scalar(servos.servo_eye_right, 0.0);
 
