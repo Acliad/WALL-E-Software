@@ -2,9 +2,9 @@
 #define SOLAR_ANIMATIONS_HPP
 #include "src/display/animate_level.hpp"
 
-extern AnimateLevel animate_display_startup;
 
 namespace DisplayAnimations {
+    extern AnimateLevel startup;
     void setup_animations();
 }
 

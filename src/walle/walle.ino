@@ -137,7 +137,7 @@ void setup() {
     DisplayAnimations::setup_animations();
 
     // Start the startup animation
-    display.setAnimation(animate_display_startup);
+    display.setAnimation(DisplayAnimations::startup);
     display.startAnimation();
 
     /*----------- PCA9685 PWM Module ----------------------*/

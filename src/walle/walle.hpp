@@ -9,7 +9,7 @@
 #include "src/button/button.hpp"
 #include "src/stats/stats.hpp"
 #include "src/motion/servo_player.hpp"
-#include "solar_animations.hpp"
+#include "display_animations.hpp"
 #include "motion_animations.hpp"
 #include "contexts.hpp"
 #include <Adafruit_PWMServoDriver.h>

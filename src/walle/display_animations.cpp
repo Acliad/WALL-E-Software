@@ -1,4 +1,4 @@
-#include "solar_animations.hpp"
+#include "display_animations.hpp"
 #include "src/display/animate_level.hpp"
 #include "src/motion/head_animation.hpp"
 
