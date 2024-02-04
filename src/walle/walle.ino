@@ -41,11 +41,8 @@ bool pca9685_connected = false;
 Adafruit_PWMServoDriver pca9685 = Adafruit_PWMServoDriver();
 
 /*----------- Track Motors -------------------------------*/
-// float left_motor_speed = 0.0f;
-// float right_motor_speed = 0.0f;
-// float motor_speed_factor = 0.5;
-// float motor_acceleration = 1.5;
-float motor_accelration_adjustment = 0.05; // Amount to adjust acceleration by when dpad buttons are pressed
+float left_motor_speed = 0.0f;
+float right_motor_speed = 0.0f;
 
 int track_velocity_profile_idx = TRACK_VELOCITY_DEFAULT_PROFILE_IDX;
 // NOTE: The motor constructor assumes the PCA9685 has already been initialized
@@ -590,6 +587,8 @@ void updateAll() {
     /*----------- Motors/Servors -------------------------*/
     if (pca9685_connected) {
         // Update motors
+        motor_r.set_speed(right_motor_speed);
+        motor_l.set_speed(left_motor_speed);
         motor_r.update();
         motor_l.update();
 
@@ -678,17 +677,8 @@ void playRandomTrack() {
 
 void mapInputs(float dt) {
     /*----------- Motor Speed ----------------------------*/
-    if (pca9685_connected) {
-        float left_motor_speed = 0.0f;
-        float right_motor_speed = 0.0f;
-        mapThumbstick(drive_controller.thumbstickX(), 
-                    -drive_controller.thumbstickY(), 
-                    &left_motor_speed, 
-                    &right_motor_speed
-                    );
-        motor_r.set_speed(right_motor_speed);
-        motor_l.set_speed(left_motor_speed);
-    }
+    mapThumbstick(drive_controller.thumbstickX(), -drive_controller.thumbstickY(), &left_motor_speed,
+                  &right_motor_speed);
 
     if (drive_controller.xWasPressed()) {
         track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES));
