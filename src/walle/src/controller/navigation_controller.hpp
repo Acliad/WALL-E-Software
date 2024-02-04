@@ -18,21 +18,22 @@
 #include <Bluepad32.h>
 
 // Controller limits
-#define CONTROLLER_THUMBSTICK_MAX   (512)
-#define CONTROLLER_THUMBSTICK_MIN   (-511)
-#define CONTROLLER_TRIGGER_MAX      (255)
-#define CONTROLLER_TRIGGER_MIN      (0)
+#define CONTROLLER_THUMBSTICK_MAX (512)
+#define CONTROLLER_THUMBSTICK_MIN (-511)
+#define CONTROLLER_TRIGGER_MAX    (255)
+#define CONTROLLER_TRIGGER_MIN    (0)
 
 // Controller button masks
-#define _CONTROLLER_BUTTON_MASK_X      0x01
-#define _CONTROLLER_BUTTON_MASK_CIRCLE 0x02
-#define _CONTROLLER_BUTTON_MASK_L1     0x10
-#define _CONTROLLER_BUTTON_MASK_L2     0x40
-#define _CONTROLLER_MISC_MASK_PS       0x01
-#define _CONTROLLER_DPAD_MASK_UP       0x01
-#define _CONTROLLER_DPAD_MASK_DOWN     0x02
-#define _CONTROLLER_DPAD_MASK_RIGHT    0x04
-#define _CONTROLLER_DPAD_MASK_LEFT     0x08
+#define _CONTROLLER_BUTTON_MASK_X          0x01
+#define _CONTROLLER_BUTTON_MASK_CIRCLE     0x02
+#define _CONTROLLER_BUTTON_MASK_L1         0x10
+#define _CONTROLLER_BUTTON_MASK_L2         0x40
+#define _CONTROLLER_BUTTON_MASK_THUMBSTICK 0x100
+#define _CONTROLLER_MISC_MASK_PS           0x01
+#define _CONTROLLER_DPAD_MASK_UP           0x01
+#define _CONTROLLER_DPAD_MASK_DOWN         0x02
+#define _CONTROLLER_DPAD_MASK_RIGHT        0x04
+#define _CONTROLLER_DPAD_MASK_LEFT         0x08
 
 // Class for handling the controller state.
 class NavigationController {
@@ -43,21 +44,28 @@ class NavigationController {
     // button was released since the last time the function was called. WasPressed will clear the WasReleased state and
     // vice versa.
 
-    void setGamepad(GamepadPtr controller);
+    void       setGamepad(GamepadPtr controller);
     GamepadPtr getGamepad();
 
     bool upIsPressed();
     bool downIsPressed();
     bool leftIsPressed();
     bool rightIsPressed();
+
     bool upWasPressed();
     bool downWasPressed();
     bool leftWasPressed();
     bool rightWasPressed();
+
     bool upWasReleased();
     bool downWasReleased();
     bool leftWasReleased();
     bool rightWasReleased();
+
+    // Thumbstick
+    bool thumbstickIsPressed();
+    bool thumbstickWasPressed();
+    bool thumbstickWasReleased();
 
     // X button
     bool xIsPressed();

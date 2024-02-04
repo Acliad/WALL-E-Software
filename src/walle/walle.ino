@@ -216,15 +216,15 @@ void loop() {
     if (millis() - last_update_time > 800) {
         last_update_time = millis();
 
-        Serial.println("--------------------------------------------------");
-        Serial.print("Neck Yaw: ");
-        Serial.println(neck_yaw_position);
-        Serial.print("Avg Loop Time: ");
-        Serial.println(loop_stats.average());
-        Serial.print("Max Loop Time: ");
-        Serial.println(loop_stats.max());
-        Serial.print("Min Loop Time: ");
-        Serial.println(loop_stats.min());
+        // Serial.println("--------------------------------------------------");
+        // Serial.print("Neck Yaw: ");
+        // Serial.println(neck_yaw_position);
+        // Serial.print("Avg Loop Time: ");
+        // Serial.println(loop_stats.average());
+        // Serial.print("Max Loop Time: ");
+        // Serial.println(loop_stats.max());
+        // Serial.print("Min Loop Time: ");
+        // Serial.println(loop_stats.min());
         // Serial.print("Aux Controller Up: ");
         // Serial.println(aux_controller.upIsPressed());
         // Serial.print("Play Button State: ");

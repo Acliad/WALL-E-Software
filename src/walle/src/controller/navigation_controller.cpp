@@ -85,6 +85,22 @@ bool NavigationController::rightWasReleased() {
     return result;
 }
 
+bool NavigationController::thumbstickIsPressed() {
+    return _lastButtonState & _CONTROLLER_BUTTON_MASK_THUMBSTICK;
+}
+
+bool NavigationController::thumbstickWasPressed() {
+    bool result = _buttonWasPressed & _CONTROLLER_BUTTON_MASK_THUMBSTICK;
+    _buttonWasPressed = _buttonWasPressed & ~_CONTROLLER_BUTTON_MASK_THUMBSTICK;
+    return result;
+}
+
+bool NavigationController::thumbstickWasReleased() {
+    bool result = _buttonWasReleased & _CONTROLLER_BUTTON_MASK_THUMBSTICK;
+    _buttonWasReleased = _buttonWasReleased & ~_CONTROLLER_BUTTON_MASK_THUMBSTICK;
+    return result;
+}
+
 bool NavigationController::xIsPressed() {
     return _lastButtonState & _CONTROLLER_BUTTON_MASK_X;
 }
