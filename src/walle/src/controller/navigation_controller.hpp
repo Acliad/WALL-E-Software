@@ -47,6 +47,9 @@ class NavigationController {
     void       setGamepad(GamepadPtr controller);
     GamepadPtr getGamepad();
 
+    void setDeadzone(int deadzone);
+    int  getDeadzone(int deadzone);
+
     bool upIsPressed();
     bool downIsPressed();
     bool leftIsPressed();
@@ -102,6 +105,8 @@ class NavigationController {
     void update();
 
   private:
+    int _deadzone;
+
     unsigned int _lastDpadState;
     unsigned int _DpadWasPressed;
     unsigned int _DpadWasReleased;
@@ -113,6 +118,8 @@ class NavigationController {
     unsigned int _miscButtonWasReleased;
 
     GamepadPtr _controller;
+
+    int _mapToDeadzone(int value);
 };
 
 #endif // NAVIGATION_CONTROLLER_HPP

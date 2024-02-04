@@ -19,12 +19,6 @@
 const unsigned int PCA9685_OSCILLATION_FREQ = 25000000; // TODO: Needs to be tuned?
 const unsigned int SERVO_FREQ_HZ = 50; // NOTE: Analog servos run at ~50 Hz updates
 
-/*----------- Servo/Motor --------------------------------*/
-const unsigned int SERVO_NEUTRAL_US = 1500;
-const unsigned int EYE_SERVO_NEUTRAL_US = 1300;
-const unsigned int SERVO_MIN_US = 1000;
-const unsigned int SERVO_MAX_US = 2000;
-
 /*----------- Controllers --------------------------------*/
 const unsigned int MAX_NUM_GAMEPADS = 2;
 
@@ -59,24 +53,36 @@ DriveMotor motor_r = DriveMotor(&pca9685, MOTOR_RIGHT_IDX);
 DriveMotor motor_l = DriveMotor(&pca9685, MOTOR_LEFT_IDX);
 
 /*----------- Head Servos --------------------------------*/
-int servo_neck_yaw_us   = SERVO_NEUTRAL_US;
-int servo_neck_pitch_us = SERVO_NEUTRAL_US;
-int servo_eye_left_us   = EYE_SERVO_NEUTRAL_US;
-int servo_eye_right_us  = EYE_SERVO_NEUTRAL_US;
-
 float neck_yaw_position = 0.0f;
 float neck_pitch_position = 0.0f;
 float eye_left_position = 0.0f;
 float eye_right_position = 0.0f;
 
-// NOTE: Initializing with default parameters here, updated in initHeadServos()
+// NOTE: Initializing with default parameters here, updated in initServos()
 ServoMotor servo_neck_yaw(&pca9685, SERVO_NECK_YAW_IDX);
 ServoMotor servo_neck_pitch(&pca9685, SERVO_NECK_PITCH_IDX);
 ServoMotor servo_eye_left(&pca9685, SERVO_EYE_LEFT_IDX);
 ServoMotor servo_eye_right(&pca9685, SERVO_EYE_RIGHT_IDX);
 
 /*----------- Arm Servos ---------------------------------*/
-// ...
+float shoulder_left_position = 0.0f;
+float shoulder_right_position = 0.0f;
+float elbow_left_position = 0.0f;
+float elbow_right_position = 0.0f;
+float wrist_left_position = 0.0f;
+float wrist_right_position = 0.0f;
+float hand_left_position = 0.0f;
+float hand_right_position = 0.0f;
+
+ServoMotor servo_shoulder_left(&pca9685, SERVO_SHOULDER_LEFT_IDX);
+ServoMotor servo_shoulder_right(&pca9685, SERVO_SHOULDER_RIGHT_IDX);
+ServoMotor servo_elbow_left(&pca9685, SERVO_ELBOW_LEFT_IDX);
+ServoMotor servo_elbow_right(&pca9685, SERVO_ELBOW_RIGHT_IDX);
+ServoMotor servo_wrist_left(&pca9685, SERVO_WRIST_LEFT_IDX);
+ServoMotor servo_wrist_right(&pca9685, SERVO_WRIST_RIGHT_IDX);
+ServoMotor servo_hand_left(&pca9685, SERVO_HAND_LEFT_IDX);
+ServoMotor servo_hand_right(&pca9685, SERVO_HAND_RIGHT_IDX);
+
 
 /*----------- Audio Player -------------------------------*/
 class Mp3Notify;
@@ -105,8 +111,8 @@ Button* buttons[] = {&button_record, &button_play, &button_stop, &button_sun};
 
 /*----------- General ------------------------------------*/
 Stats loop_stats = Stats(0.99);
-HeadAnimation head_animations[] = {MotionAnimations::cock_left, MotionAnimations::wiggle_eyes, MotionAnimations::sad,
-                                   MotionAnimations::curious_track};
+HeadAnimation* head_animations[] = {&MotionAnimations::cock_left, &MotionAnimations::wiggle_eyes, &MotionAnimations::sad,
+                                   &MotionAnimations::curious_track};
 ServoPlayer& servo_player = ServoPlayer::getInstance();
 
 /**************************************************************
@@ -154,20 +160,20 @@ void setup() {
     motor_l.set_acceleration(TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration);
 
     /*----------- Servo Motors ---------------------------*/
-    initHeadServos();
+    initServos();
     ServoContext servo_context;
     servo_context.servo_neck_yaw = &servo_neck_yaw;
     servo_context.servo_neck_pitch = &servo_neck_pitch;
     servo_context.servo_eye_left = &servo_eye_left;
     servo_context.servo_eye_right = &servo_eye_right;
-    // servo_context.servo_shoulder_left = &servo_shoulder_left;
-    // servo_context.servo_shoulder_right = &servo_shoulder_right;
-    // servo_context.servo_elbow_left = &servo_elbow_left;
-    // servo_context.servo_elbow_right = &servo_elbow_right;
-    // servo_context.servo_wrist_left = &servo_wrist_left;
-    // servo_context.servo_wrist_right = &servo_wrist_right;
-    // servo_context.servo_hand_left = &servo_hand_left;
-    // servo_context.servo_hand_right = &servo_hand_right;
+    servo_context.servo_shoulder_left = &servo_shoulder_left;
+    servo_context.servo_shoulder_right = &servo_shoulder_right;
+    servo_context.servo_elbow_left = &servo_elbow_left;
+    servo_context.servo_elbow_right = &servo_elbow_right;
+    servo_context.servo_wrist_left = &servo_wrist_left;
+    servo_context.servo_wrist_right = &servo_wrist_right;
+    servo_context.servo_hand_left = &servo_hand_left;
+    servo_context.servo_hand_right = &servo_hand_right;
 
     MotionAnimations::setup_animations(servo_context);
 
@@ -182,6 +188,8 @@ void setup() {
         BP32.update();
         delay(100); // Not necessary, just prevents pinging isConnected() a ton
     }
+    drive_controller.setDeadzone(CONTROLLER_DEADZONE);
+    aux_controller.setDeadzone(CONTROLLER_DEADZONE);
 
 /***************************************************************
  *                     DFMini Audio Driver                      *
@@ -217,6 +225,10 @@ void loop() {
         last_update_time = millis();
 
         // Serial.println("--------------------------------------------------");
+        // Serial.print("Raw thumbstick X: ");
+        // Serial.println(drive_controller.thumbstickX());
+        // Serial.print("Raw thumbstick Y: ");
+        // Serial.println(drive_controller.thumbstickY());
         // Serial.print("Neck Yaw: ");
         // Serial.println(neck_yaw_position);
         // Serial.print("Avg Loop Time: ");
@@ -254,17 +266,26 @@ void loop() {
         // Serial.println(motor_speed_factor);
         // Serial.print("calcul rmotor_us = ");
         // Serial.println(rmotor_us);
-        Serial.println("--------------------------------------------------");
+        // Serial.println("--------------------------------------------------");
 
     }
 }
 
-void initHeadServos() {
+void initServos() {
     // Set ramp mode to SINUSOIDAL_INOUT for all motors
     servo_neck_yaw.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_neck_pitch.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_eye_left.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_eye_right.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_shoulder_left.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_shoulder_right.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_elbow_left.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_elbow_right.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_wrist_left.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_wrist_right.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_hand_left.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_hand_right.set_ramp_mode(SINUSOIDAL_INOUT);
+
 
     /*************************************
      * Setup the eye servos
@@ -289,11 +310,59 @@ void initHeadServos() {
     servo_neck_yaw.set_min_us(SERVO_NECK_YAW_MIN_US);
     servo_neck_yaw.set_neutral_us(SERVO_NECK_YAW_NEUTRAL_US);
 
+    /*************************************
+     * Setup the arm servos
+     *************************************/
+    servo_shoulder_left.set_max_us(SERVO_SHOULDER_MAX_US);
+    servo_shoulder_left.set_min_us(SERVO_SHOULDER_MIN_US);
+    servo_shoulder_left.set_neutral_us(SERVO_SHOULDER_NEUTRAL_US);
+
+    servo_shoulder_right.set_max_us(SERVO_SHOULDER_MAX_US);
+    servo_shoulder_right.set_min_us(SERVO_SHOULDER_MIN_US);
+    servo_shoulder_right.set_neutral_us(SERVO_SHOULDER_NEUTRAL_US);
+
+    servo_elbow_left.set_max_us(SERVO_ELBOW_MAX_US);
+    servo_elbow_left.set_min_us(SERVO_ELBOW_MIN_US);
+    servo_elbow_left.set_neutral_us(SERVO_ELBOW_NEUTRAL_US);
+
+    servo_elbow_right.set_max_us(SERVO_ELBOW_MAX_US);
+    servo_elbow_right.set_min_us(SERVO_ELBOW_MIN_US);
+    servo_elbow_right.set_neutral_us(SERVO_ELBOW_NEUTRAL_US);
+
+    servo_wrist_left.set_max_us(SERVO_WRIST_MAX_US);
+    servo_wrist_left.set_min_us(SERVO_WRIST_MIN_US);
+    servo_wrist_left.set_neutral_us(SERVO_WRIST_NEUTRAL_US);
+
+    servo_wrist_right.set_max_us(SERVO_WRIST_MAX_US);
+    servo_wrist_right.set_min_us(SERVO_WRIST_MIN_US);
+    servo_wrist_right.set_neutral_us(SERVO_WRIST_NEUTRAL_US);
+
+    servo_hand_left.set_max_us(SERVO_HAND_MAX_US);
+    servo_hand_left.set_min_us(SERVO_HAND_MIN_US);
+    servo_hand_left.set_neutral_us(SERVO_HAND_NEUTRAL_US);
+
+    servo_hand_right.set_max_us(SERVO_HAND_MAX_US);
+    servo_hand_right.set_min_us(SERVO_HAND_MIN_US);
+    servo_hand_right.set_neutral_us(SERVO_HAND_NEUTRAL_US);
+
     // Set all motors to neutral
     servo_neck_yaw.set_angle(0.0f, 0);
     servo_neck_pitch.set_angle(0.0f, 0);
+
     servo_eye_left.set_scalar(0.0f, 0);
     servo_eye_right.set_scalar(0.0f, 0);
+
+    servo_shoulder_left.set_scalar(0.0f, 0);
+    servo_shoulder_right.set_scalar(0.0f, 0);
+
+    servo_elbow_left.set_scalar(0.0f, 0);
+    servo_elbow_right.set_scalar(0.0f, 0);
+
+    servo_wrist_left.set_scalar(0.0f, 0);
+    servo_wrist_right.set_scalar(0.0f, 0);
+
+    servo_hand_left.set_scalar(0.0f, 0);
+    servo_hand_right.set_scalar(0.0f, 0);
 }
 
 /**
@@ -531,6 +600,14 @@ void updateAll() {
         servo_neck_pitch.update();
         servo_eye_left.update();
         servo_eye_right.update();
+        servo_shoulder_left.update();
+        servo_shoulder_right.update();
+        servo_elbow_left.update();
+        servo_elbow_right.update();
+        servo_wrist_left.update();
+        servo_wrist_right.update();
+        servo_hand_left.update();
+        servo_hand_right.update();
 
         // ServoPlayer
         servo_player.update();
@@ -599,11 +676,10 @@ void mapInputs(float dt) {
     }
 
     /*----------- Head Movement --------------------------*/
-    if (!(aux_controller.l2IsPressed() || drive_controller.l2IsPressed() ||
-          drive_controller.l1IsPressed())) {
+    if (!(aux_controller.l2IsPressed() || drive_controller.l2IsPressed() || drive_controller.l1IsPressed())) {
+        // If not relavent modifier is pressed...
         neck_pitch_position =
             constrain(neck_pitch_position + HEAD_YAW_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
-
         neck_yaw_position =
             constrain(neck_yaw_position + HEAD_PITCH_RATE_PER_S * aux_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
     }
@@ -611,27 +687,47 @@ void mapInputs(float dt) {
     if (aux_controller.l2IsPressed()) {
         eye_left_position =
             constrain(eye_left_position + EYE_MOVE_RATE_PER_S * -drive_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
-
         eye_right_position =
-            constrain(eye_right_position + EYE_MOVE_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+            constrain(eye_right_position + EYE_MOVE_RATE_PER_S * aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
     }
     /*----------- Arm Movement ---------------------------*/
     // TODO: Map this out
     if (drive_controller.l2IsPressed()) {
-        // TODO: Add in left/right arm movement
+        // ----------- Shoulders -----------
+        shoulder_left_position = constrain(
+            shoulder_left_position + SHOULDER_MOVE_RATE_PER_S * -drive_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+        shoulder_right_position = constrain(
+            shoulder_right_position + SHOULDER_MOVE_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+
+        // ------------ Elbows -------------
+        elbow_left_position = constrain(
+            elbow_left_position + ELBOW_MOVE_RATE_PER_S * drive_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
+        elbow_right_position = constrain(
+            elbow_right_position + ELBOW_MOVE_RATE_PER_S * aux_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
+
     } else if (drive_controller.l1IsPressed()) {
-        // TODO: Add in left/right hand movement
+        // ------------- Wrists ------------
+        wrist_left_position = constrain(
+            wrist_left_position + WRIST_MOVE_RATE_PER_S * drive_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
+        wrist_right_position = constrain(
+            wrist_right_position + WRIST_MOVE_RATE_PER_S * aux_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
+
+        // ------------- Hands -------------
+        hand_left_position = constrain(
+            hand_left_position + HAND_MOVE_RATE_PER_S * -drive_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+        hand_right_position = constrain(
+            hand_right_position + HAND_MOVE_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
     }
 
     /*----------- Animations -----------------------------*/
     if (drive_controller.upWasPressed()) {
-        servo_player.playAnimation(&head_animations[0]);
+        servo_player.playAnimation(head_animations[0]);
     } else if (drive_controller.rightWasPressed()) {
-        servo_player.playAnimation(&head_animations[1]);
+        servo_player.playAnimation(head_animations[1]);
     } else if (drive_controller.downWasPressed()) {
-        servo_player.playAnimation(&head_animations[2]);
+        servo_player.playAnimation(head_animations[2]);
     } else if (drive_controller.leftWasPressed()) {
-        servo_player.playAnimation(&head_animations[3]);
+        servo_player.playAnimation(head_animations[3]);
     }
 
     /*----------- Sounds ---------------------------------*/

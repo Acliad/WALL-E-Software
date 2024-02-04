@@ -18,12 +18,29 @@
 *  corresponding index of the PWM module. The index is printed on the
 *  silkscreen of the module.
 *  -------------------------------------------------------------------*/
-#define MOTOR_LEFT_IDX       (0)
-#define MOTOR_RIGHT_IDX      (1)
-#define SERVO_NECK_YAW_IDX   (15)
-#define SERVO_NECK_PITCH_IDX (14)
-#define SERVO_EYE_LEFT_IDX   (13)
-#define SERVO_EYE_RIGHT_IDX  (12)
+// Drive motors
+#define MOTOR_LEFT_IDX  (0)
+#define MOTOR_RIGHT_IDX (1)
+
+// Arm servos
+#define SERVO_SHOULDER_LEFT_IDX  (2)
+#define SERVO_SHOULDER_RIGHT_IDX (3)
+
+#define SERVO_ELBOW_LEFT_IDX  (4)
+#define SERVO_ELBOW_RIGHT_IDX (5)
+
+#define SERVO_WRIST_LEFT_IDX  (6)
+#define SERVO_WRIST_RIGHT_IDX (7)
+
+#define SERVO_HAND_LEFT_IDX   (8)
+#define SERVO_HAND_RIGHT_IDX  (9)
+
+// Head servos
+#define SERVO_NECK_YAW_IDX    (15)
+#define SERVO_NECK_PITCH_IDX  (14)
+                        
+#define SERVO_EYE_LEFT_IDX    (13)
+#define SERVO_EYE_RIGHT_IDX   (12)
 
 /*---- Track Motor Configs --------------------------------------------
 *  The following constants setup parameters for the track motors.
@@ -52,6 +69,23 @@ const TrackVelocityProfile_t TRACK_VELOCITY_PROFILES[] = {
 #define SERVO_NECK_PITCH_MAX_US (1800)
 #define SERVO_NECK_PITCH_MIN_US (1200)
 #define SERVO_NECK_PITCH_NEUTRAL_US (1500)
+
+// Set the min and max us for the arm servos
+#define SERVO_SHOULDER_MAX_US (2000)
+#define SERVO_SHOULDER_MIN_US (1000)
+#define SERVO_SHOULDER_NEUTRAL_US (1500)
+
+#define SERVO_ELBOW_MAX_US (2000)
+#define SERVO_ELBOW_MIN_US (1000)
+#define SERVO_ELBOW_NEUTRAL_US (1500)
+
+#define SERVO_WRIST_MAX_US (2000)
+#define SERVO_WRIST_MIN_US (1000)
+#define SERVO_WRIST_NEUTRAL_US (1500)
+
+#define SERVO_HAND_MAX_US (2000)
+#define SERVO_HAND_MIN_US (1000)
+#define SERVO_HAND_NEUTRAL_US (1500)
 
 // Set the min and max us for the eye servos
 #define SERVO_EYE_RIGHT_MAX_US (2000)
@@ -119,8 +153,16 @@ int audio_track_selection_list[4] = {
 // scalled down based on the thumbstick position.
 #define HEAD_YAW_RATE_PER_S   (2.0)
 #define HEAD_PITCH_RATE_PER_S (1.0) 
+
 #define EYE_MOVE_RATE_PER_S   (2.0)
 
+#define SHOULDER_MOVE_RATE_PER_S (1.0)
+#define ELBOW_MOVE_RATE_PER_S    (1.0)
+#define WRIST_MOVE_RATE_PER_S    (1.0)
+#define HAND_MOVE_RATE_PER_S     (1.0)
 
+// The deadzone for the thumbsticks. This is the minimum value that the thumbstick must move before the controller
+// registers input. Used to combat controller drift. Value is out of 512.
+#define CONTROLLER_DEADZONE (25)
 
 #endif /* CONFIG_HPP */

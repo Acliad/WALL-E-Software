@@ -13,6 +13,12 @@ GamepadPtr NavigationController::getGamepad() {
     return _controller;
 }
 
+void NavigationController::setDeadzone(int deadzone) {
+    // Sets the deadzone for the thumbstick. The thumbstick's values will be remapped such that the value of the
+    // deadzone` becomes 0 and the maximum value remains CONTROLLER_THUMBSTICK_MAX (and MIN as appropriate). 
+    _deadzone = deadzone;
+}
+
 bool NavigationController::upIsPressed() {
     return _lastDpadState & _CONTROLLER_DPAD_MASK_UP;
 }
@@ -205,7 +211,7 @@ int NavigationController::thumbstickX() {
     if (_controller == nullptr) {
         return 0;
     } else {
-        return _controller->axisX();
+        return _mapToDeadzone(_controller->axisX());
     }
 }
 
@@ -213,7 +219,7 @@ int NavigationController::thumbstickY() {
     if (_controller == nullptr) {
         return 0;
     } else {
-        return _controller->axisY();
+        return _mapToDeadzone(_controller->axisY());
     }
 }
 
@@ -274,4 +280,16 @@ void NavigationController::update() {
     _lastDpadState = dpadState;
     _lastButtonState = buttonState;
     _lastMiscButtonState = miscButtonState;
+}
+
+int NavigationController::_mapToDeadzone(int value) {
+    // Remap the controller input value so that the returned value is 0 at and below the deadzone then linearly scales
+    // to the maximum value.
+    if (value > _deadzone) {
+        return map(value, _deadzone, CONTROLLER_THUMBSTICK_MAX, 0, CONTROLLER_THUMBSTICK_MAX);
+    } else if (value < -_deadzone) {
+        return map(value, -_deadzone, CONTROLLER_THUMBSTICK_MIN, 0, CONTROLLER_THUMBSTICK_MIN);
+    } else {
+        return 0;
+    }
 }
