@@ -1,20 +1,20 @@
 # Adding Solar Animations
 The steps to add a solar animation are as follows:
-1. Declare your variable name to solar_animations.hpp:
+1. Declare your variable name to display_animations.hpp:
 ```cpp
 extern AnimateLeve animate_display_startup;
 ...
 // Add your variable name here
 extern AnimateLevel my_animation;
 ```
-2. Define your vairable in solar_animations.cpp:
+2. Define your vairable in display_animations.cpp:
 ```cpp
 AnimateLevel animate_display_startup = AnimateLevel();
 ...
 // Define your variable here
 AnimateLevel my_animation = AnimateLevel();
 ```
-3. Create a setup_my_animation() function in solar_animations.cpp:
+3. Create a setup_my_animation() function in display_animations.cpp:
 ```cpp
 void setup_my_animation() {
   my_animation.addKeyframe(0, 0);
@@ -22,7 +22,7 @@ void setup_my_animation() {
   ...
 }
 ```
-4. Add your setup_my_animation() function to the setup_animations() function in solar_animations.cpp:
+4. Add your setup_my_animation() function to the setup_animations() function in display_animations.cpp:
 ```cpp
 void setup_animations() {
   setup_startup();

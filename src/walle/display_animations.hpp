@@ -1,5 +1,5 @@
-#ifndef SOLAR_ANIMATIONS_HPP
-#define SOLAR_ANIMATIONS_HPP
+#ifndef DISPLAY_ANIMATIONS_HPP
+#define DISPLAY_ANIMATIONS_HPP
 #include "src/display/animate_level.hpp"
 
 
@@ -8,4 +8,4 @@ namespace DisplayAnimations {
     void setup_animations();
 }
 
-#endif // SOLAR_ANIMATIONS_HPP
+#endif // DISPLAY_ANIMATIONS_HPP

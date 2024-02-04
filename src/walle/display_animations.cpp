@@ -1,12 +1,11 @@
 #include "display_animations.hpp"
 #include "src/display/animate_level.hpp"
-#include "src/motion/head_animation.hpp"
+#include "src/motion/animate_servo.hpp"
 
 // Define new animations here
 
-AnimateLevel animate_display_startup = AnimateLevel();
-
 namespace DisplayAnimations {
+AnimateLevel startup = AnimateLevel();
 // Create setup functions for each animation.
 // NOTE: Don't forget to call these functions in setup_animations().
 void setup_startup() {
@@ -24,7 +23,7 @@ void setup_startup() {
     // |            |
     // |            |
     // |            |
-    animate_display_startup.addKeyframe(0, 80, false);
+    startup.addKeyframe(0, 80, false);
 
     // Turn on the sun for the first beep
     //             |____________|
@@ -37,7 +36,7 @@ void setup_startup() {
     //             |            |
     //             |            |
     //             |            |
-    animate_display_startup.addKeyframe(0, 1000, true);
+    startup.addKeyframe(0, 1000, true);
 
     // |____________|
     // |            |
@@ -50,8 +49,8 @@ void setup_startup() {
     // |            |
     // |████████████|
     // |████████████|
-    animate_display_startup.addKeyframe(2, 1000);
-    animate_display_startup.addPauseKeyframe(800);
+    startup.addKeyframe(2, 1000);
+    startup.addPauseKeyframe(800);
 
     // |____________|
     // |████████████|
@@ -64,7 +63,7 @@ void setup_startup() {
     // |████████████|
     // |████████████|
     // |████████████|
-    animate_display_startup.addKeyframe(10, 900);
+    startup.addKeyframe(10, 900);
 }
 
 void setup_animations() {
