@@ -20,6 +20,7 @@
 class HeadKeyframe {
   public:
     HeadKeyframe(unsigned long duration_ms);
+    ~HeadKeyframe();
 
     void add_servo_angle(ServoMotor *servo, float angle, ramp_mode ramp_mode = QUADRATIC_INOUT);
     void add_servo_scalar(ServoMotor *servo, float scalar, ramp_mode ramp_mode = QUADRATIC_INOUT);

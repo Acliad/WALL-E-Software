@@ -20,6 +20,7 @@
 class HeadAnimation {
   public:
     HeadAnimation();
+    ~HeadAnimation();
 
     void add_keyframe(HeadKeyframe *keyframe);
     void play();

@@ -27,6 +27,8 @@ class ServoMotor : public Motor {
 
     // Set the angle in degrees from -90 to 90
     void set_angle(float angle, unsigned long time_ms = 0);
+    // TODO: This naming scheme is rather confusing. Either this function should adjust the min_us and max_us OR it
+    // should be renamed to something like set_angle_range_min(), set_angle_range_max(). 
     void set_min_angle(float min_angle_deg);
     void set_max_angle(float max_angle_deg);
     void set_neutral_angle(float neutral_angle_deg);

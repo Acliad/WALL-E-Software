@@ -5,6 +5,16 @@ HeadAnimation::HeadAnimation()
       _keyframe_has_started(false) {
 }
 
+HeadAnimation::~HeadAnimation() {
+    // Iterate through the keyframes and delete them
+    HeadKeyframe *current = _head;
+    while (current != nullptr) {
+        HeadKeyframe *next = current->get_next();
+        delete current;
+        current = next;
+    }
+}
+
 void HeadAnimation::add_keyframe(HeadKeyframe *keyframe) {
     // Find the end of the linked list and add the new keyframe
     HeadKeyframe *current = _head;

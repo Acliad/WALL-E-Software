@@ -10,20 +10,7 @@
  *
  */
 
-#include "config.hpp"
-#include "src/controller/navigation_controller.hpp"
-#include "src/motion/drive_motor.hpp"
-#include "src/display/display.hpp"
-#include "solar_animations.hpp"
-#include <Adafruit_PWMServoDriver.h>
-#include <Bluepad32.h>
-#include <DFMiniMp3.h>
-#include <Wire.h>
-
-/**************************************************************
- *                          Defines                           *
- **************************************************************/
-#define PI_OVER_FOUR (PI / 4.0)
+#include "walle.hpp"
 
 /**************************************************************
  *                         Constants                          *
@@ -34,11 +21,19 @@ const unsigned int SERVO_FREQ_HZ = 50; // NOTE: Analog servos run at ~50 Hz upda
 
 /*----------- Servo/Motor --------------------------------*/
 const unsigned int SERVO_NEUTRAL_US = 1500;
+const unsigned int EYE_SERVO_NEUTRAL_US = 1300;
 const unsigned int SERVO_MIN_US = 1000;
 const unsigned int SERVO_MAX_US = 2000;
 
 /*----------- Controllers --------------------------------*/
 const unsigned int MAX_NUM_GAMEPADS = 2;
+
+/*----------- Buttons ------------------------------------*/
+const unsigned int BUTTON_PIN_RECORD = 32;
+const unsigned int BUTTON_PIN_PLAY   = 35;
+const unsigned int BUTTON_PIN_STOP   = 34;
+const unsigned int BUTTON_PIN_SUN    = 33;
+
 
 /************************************************************** 
  *                         Variables                          *
@@ -52,11 +47,13 @@ bool pca9685_connected = false;
 Adafruit_PWMServoDriver pca9685 = Adafruit_PWMServoDriver();
 
 /*----------- Track Motors -------------------------------*/
-float left_motor_speed = 0.0f;
-float right_motor_speed = 0.0f;
-float motor_speed_factor = 0.5;
-float motor_acceleration_per_ss = 1.5;
+// float left_motor_speed = 0.0f;
+// float right_motor_speed = 0.0f;
+// float motor_speed_factor = 0.5;
+// float motor_acceleration = 1.5;
 float motor_accelration_adjustment = 0.05; // Amount to adjust acceleration by when dpad buttons are pressed
+
+int track_velocity_profile_idx = TRACK_VELOCITY_DEFAULT_PROFILE_IDX;
 // NOTE: The motor constructor assumes the PCA9685 has already been initialized
 DriveMotor motor_r = DriveMotor(&pca9685, MOTOR_RIGHT_IDX);
 DriveMotor motor_l = DriveMotor(&pca9685, MOTOR_LEFT_IDX);
@@ -64,8 +61,19 @@ DriveMotor motor_l = DriveMotor(&pca9685, MOTOR_LEFT_IDX);
 /*----------- Head Servos --------------------------------*/
 int servo_neck_yaw_us   = SERVO_NEUTRAL_US;
 int servo_neck_pitch_us = SERVO_NEUTRAL_US;
-int servo_eye_left_us   = SERVO_NEUTRAL_US;
-int servo_eye_right_us  = SERVO_NEUTRAL_US;
+int servo_eye_left_us   = EYE_SERVO_NEUTRAL_US;
+int servo_eye_right_us  = EYE_SERVO_NEUTRAL_US;
+
+float neck_yaw_position = 0.0f;
+float neck_pitch_position = 0.0f;
+float eye_left_position = 0.0f;
+float eye_right_position = 0.0f;
+
+// NOTE: Initializing with default parameters here, updated in initHeadServos()
+ServoMotor servo_neck_yaw(&pca9685, SERVO_NECK_YAW_IDX);
+ServoMotor servo_neck_pitch(&pca9685, SERVO_NECK_PITCH_IDX);
+ServoMotor servo_eye_left(&pca9685, SERVO_EYE_LEFT_IDX);
+ServoMotor servo_eye_right(&pca9685, SERVO_EYE_RIGHT_IDX);
 
 /*----------- Arm Servos ---------------------------------*/
 // ...
@@ -74,18 +82,32 @@ int servo_eye_right_us  = SERVO_NEUTRAL_US;
 class Mp3Notify;
 // Handy typedef using serial and our notify class
 typedef DFMiniMp3<HardwareSerial, Mp3Notify> DfMp3;
+
 DfMp3_Status dfmp3_status;
 unsigned int audio_current_track = 0;
 unsigned int audio_num_tracks = 1;
 DfMp3 dfmp3 = DfMp3(Serial2);
 
-
-/*----------- Controllers --------------------------------*/
+/*----------- Controllers/Buttons -------------------------*/
 GamepadPtr           myGamepads[MAX_NUM_GAMEPADS];
 NavigationController drive_controller;
 NavigationController aux_controller;
 // Keep an array of NavigationControllers to make connecting/disconnecting easier
 NavigationController* controllers[MAX_NUM_GAMEPADS] = {&drive_controller, &aux_controller};
+
+// Buttons
+Button button_record = Button(BUTTON_PIN_RECORD, BUTTON_DEBOUNCE_TIME_MS);
+Button button_play   = Button(BUTTON_PIN_PLAY,   BUTTON_DEBOUNCE_TIME_MS);
+Button button_stop   = Button(BUTTON_PIN_STOP,   BUTTON_DEBOUNCE_TIME_MS);
+Button button_sun    = Button(BUTTON_PIN_SUN,    BUTTON_DEBOUNCE_TIME_MS);
+
+Button* buttons[] = {&button_record, &button_play, &button_stop, &button_sun};
+
+/*----------- General ------------------------------------*/
+Stats loop_stats = Stats(0.99);
+HeadAnimation head_animations[] = {MotionAnimations::cock_left, MotionAnimations::wiggle_eyes, MotionAnimations::sad,
+                                   MotionAnimations::curious_track};
+ServoPlayer& servo_player = ServoPlayer::getInstance();
 
 /**************************************************************
  *                    Function Prototypes                     *
@@ -93,6 +115,10 @@ NavigationController* controllers[MAX_NUM_GAMEPADS] = {&drive_controller, &aux_c
 /*----------- Controllers --------------------------------*/
 bool isGamepadConnected();
 void mapThumbstick(int thumbstick_x, int thumbstick_y, float *left_motor_speed, float *right_motor_speed);
+void mapInputs(float dt);
+
+/*----------- Audio Player -------------------------------*/
+void playRandomTrack();
 
 /*----------- General ------------------------------------*/
 void updateAll();
@@ -102,10 +128,10 @@ void setup() {
 
     /*----------- Display --------------------------------*/
     display.begin();
-    setup_animations();
+    DisplayAnimations::setup_animations();
 
     // Start the startup animation
-    display.setAnimation(startup_animation);
+    display.setAnimation(animate_display_startup);
     display.startAnimation();
 
     /*----------- PCA9685 PWM Module ----------------------*/
@@ -119,25 +145,43 @@ void setup() {
     }
 
     /*----------- Drive Motors ---------------------------*/
-    // Set the max speed to motor_speed_factor
-    motor_r.set_speed_limit(motor_speed_factor);
-    motor_l.set_speed_limit(motor_speed_factor);
+    // Set the default max speed
+    motor_r.set_speed_limit(TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler);
+    motor_l.set_speed_limit(TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler);
 
     // Set the default acceleration
-    motor_r.set_acceleration(motor_acceleration_per_ss);
-    motor_l.set_acceleration(motor_acceleration_per_ss);
+    motor_r.set_acceleration(TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration);
+    motor_l.set_acceleration(TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration);
+
+    /*----------- Servo Motors ---------------------------*/
+    initHeadServos();
+    ServoContext servo_context;
+    servo_context.servo_neck_yaw = &servo_neck_yaw;
+    servo_context.servo_neck_pitch = &servo_neck_pitch;
+    servo_context.servo_eye_left = &servo_eye_left;
+    servo_context.servo_eye_right = &servo_eye_right;
+    // servo_context.servo_shoulder_left = &servo_shoulder_left;
+    // servo_context.servo_shoulder_right = &servo_shoulder_right;
+    // servo_context.servo_elbow_left = &servo_elbow_left;
+    // servo_context.servo_elbow_right = &servo_elbow_right;
+    // servo_context.servo_wrist_left = &servo_wrist_left;
+    // servo_context.servo_wrist_right = &servo_wrist_right;
+    // servo_context.servo_hand_left = &servo_hand_left;
+    // servo_context.servo_hand_right = &servo_hand_right;
+
+    MotionAnimations::setup_animations(servo_context);
 
     /*----------- Controllers ----------------------------*/
-    // Serial.println("Initializing Controller...");
-    // BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
-    // // Calling this can fix some issues with the controller not connecting
-    // BP32.forgetBluetoothKeys();
-    // Serial.println("Waiting for controller to connect...");
-    // while (!isGamepadConnected()) {
-    //     // Waiting...
-    //     BP32.update();
-    //     delay(100); // Not necessary, just prevents pinging isConnected() a ton
-    // }
+    Serial.println("Initializing Controller...");
+    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+    // Calling this can fix some issues with the controller not connecting
+    BP32.forgetBluetoothKeys();
+    Serial.println("Waiting for controller to connect...");
+    while (!isGamepadConnected() && WAIT_FOR_CONTROLLER_CONNECTION) {
+        // Waiting...
+        BP32.update();
+        delay(100); // Not necessary, just prevents pinging isConnected() a ton
+    }
 
 /***************************************************************
  *                     DFMini Audio Driver                      *
@@ -147,89 +191,109 @@ void setup() {
     dfmp3.reset(); // Could cause popping; can be removed after development.
     audio_num_tracks = dfmp3.getTotalTrackCount(DfMp3_PlaySource_Sd);
     dfmp3.setVolume(DEFAULT_AUDIO_VOLUME);
-    if (STARTUP_TRACK_INDEX) {
-        dfmp3.playMp3FolderTrack(STARTUP_TRACK_INDEX);
+    if (TRACK_INDEX_STARTUP) {
+        dfmp3.playMp3FolderTrack(TRACK_INDEX_STARTUP);
     }
 #endif
 }
 
 void loop() {
+    static unsigned long loop_start_time = millis();
+    float dt = (float) (millis() - loop_start_time) / 1000.0;
+    loop_start_time = millis();
 
     updateAll();
+    mapInputs(dt);
 
-    // Map right thumbstick (for now) to head motors
-    // servo_neck_yaw_us = map(Ps3.data.analog.stick.lx, CONTROLLER_THUMBSTICK_MIN, CONTROLLER_THUMBSTICK_MAX, SERVO_MIN_US, SERVO_MAX_US);
-    // servo_neck_pitch_us = map(Ps3.data.analog.stick.ly, CONTROLLER_THUMBSTICK_MIN, CONTROLLER_THUMBSTICK_MAX, SERVO_MIN_US, SERVO_MAX_US);
-
-    // servo_neck_yaw_us = map(Ps3.data.analog.stick.lx, THUMBSTICK_MIN, CONTROLLER_THUMBSTICK_MAX, SERVO_MIN_US, SERVO_MAX_US);
-    // servo_neck_pitch_us = map(Ps3.data.analog.stick.ly, CONTROLLER_THUMBSTICK_MIN, CONTROLLER_THUMBSTICK_MAX, SERVO_MIN_US, SERVO_MAX_US);
-
-    // servo_eye_left_us = map(Ps3.event.analog_changed.button.l2, CONTROLLER_TRIGGER_MIN, CONTROLLER_TRIGGER_MAX, SERVO_MIN_US,
-    // SERVO_MAX_US); servo_eye_right_us = map(Ps3.event.analog_changed.button.r2, CONTROLLER_TRIGGER_MIN, CONTROLLER_TRIGGER_MAX,
-    // SERVO_MIN_US, SERVO_MAX_US);
-
-    // Map thumbstick values to motor drive values
-    mapThumbstick(drive_controller.thumbstickX(), 
-                  -drive_controller.thumbstickY(), 
-                  &left_motor_speed, 
-                  &right_motor_speed
-                  );
-
-    if (pca9685_connected) {
-        motor_r.set_speed(right_motor_speed);
-        motor_l.set_speed(left_motor_speed);
-    }
-
-#ifdef ENABLE_AUDIO
-    dfmp3.loop();
-    dfmp3_status = dfmp3.getStatus();
-    if (aux_controller.circleWasPressed() && (dfmp3_status.state != DfMp3_StatusState_Playing)) {
-        Serial.print("Playing Track #");
-        Serial.println(audio_current_track + 1);
-        dfmp3.playMp3FolderTrack(audio_current_track + 1); // +1 for 1 indexing of filenames
-        audio_current_track = (audio_current_track + 1) % audio_num_tracks;
-    }
-#endif
-
-    // Adjust the motor acceleration curve if button pressed
-    if (drive_controller.upWasPressed()) {
-        motor_speed_factor += 0.05;
-        motor_r.set_speed_limit(motor_speed_factor);
-        motor_l.set_speed_limit(motor_speed_factor);
-    }
-    if (drive_controller.downWasPressed()) {
-        motor_speed_factor -= 0.05;
-        motor_r.set_speed_limit(motor_speed_factor);
-        motor_l.set_speed_limit(motor_speed_factor);
-    }
-    // check if the right button was pressed
-    if (drive_controller.rightWasPressed()) {
-        motor_acceleration_per_ss += motor_accelration_adjustment;
-        motor_r.set_acceleration(motor_acceleration_per_ss);
-        motor_l.set_acceleration(motor_acceleration_per_ss);
-    }
-    // check if the left button was pressed
-    if (drive_controller.leftWasPressed()) {
-        motor_acceleration_per_ss -= motor_accelration_adjustment;
-        motor_r.set_acceleration(motor_acceleration_per_ss);
-        motor_l.set_acceleration(motor_acceleration_per_ss);
-    }
-
+    // Update the loop stats
+    static int test = 0;
+    if (test > 1)
+        loop_stats.addNumber(millis() - loop_start_time);
+    else
+        test++;
     // Debug printing
     static long last_update_time = 0;
     if (millis() - last_update_time > 800) {
         last_update_time = millis();
-        Serial.print("left_motor_speed = ");
-        Serial.println(motor_l.get_current_speed());
-        Serial.print("right_motor_speed = ");
-        Serial.println(motor_r.get_current_speed());
-        Serial.print("motor_acceleration_per_ss = ");
-        Serial.println(motor_acceleration_per_ss);
-        Serial.print("motor_speed_factor = ");
-        Serial.println(motor_speed_factor);
+
+        Serial.println("--------------------------------------------------");
+        Serial.print("Neck Yaw: ");
+        Serial.println(neck_yaw_position);
+        Serial.print("Avg Loop Time: ");
+        Serial.println(loop_stats.average());
+        Serial.print("Max Loop Time: ");
+        Serial.println(loop_stats.max());
+        Serial.print("Min Loop Time: ");
+        Serial.println(loop_stats.min());
+        // Serial.print("Aux Controller Up: ");
+        // Serial.println(aux_controller.upIsPressed());
+        // Serial.print("Play Button State: ");
+        // Serial.println(button_play.isPressed());
+        // Serial.print("Time in State: ");
+        // Serial.println(button_play.timeInState());
+        // Serial.print("Stop Button State: ");
+        // Serial.println(button_stop.isPressed());
+        // Serial.print("Time in State: ");
+        // Serial.println(button_stop.timeInState());
+        // Serial.print("Record Button State: ");
+        // Serial.println(button_record.isPressed());
+        // Serial.print("Time in State: ");
+        // Serial.println(button_record.timeInState());
+        // Serial.print("Sun Button State: ");
+        // Serial.println(button_sun.isPressed());
+        // Serial.print("Time in State: ");
+        // Serial.println(button_sun.timeInState());
+
+        // Serial.print("left_motor_speed = ");
+        // Serial.println(motor_l.get_current_speed());
+        // Serial.print("right_motor_speed = ");
+        // Serial.println(motor_r.get_current_speed());
+        // Serial.print("motor_acceleration = ");
+        // Serial.println(motor_acceleration);
+        // Serial.print("motor_speed_factor = ");
+        // Serial.println(motor_speed_factor);
         // Serial.print("calcul rmotor_us = ");
         // Serial.println(rmotor_us);
+        Serial.println("--------------------------------------------------");
+
     }
+}
+
+void initHeadServos() {
+    // Set ramp mode to SINUSOIDAL_INOUT for all motors
+    servo_neck_yaw.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_neck_pitch.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_eye_left.set_ramp_mode(SINUSOIDAL_INOUT);
+    servo_eye_right.set_ramp_mode(SINUSOIDAL_INOUT);
+
+    /*************************************
+     * Setup the eye servos
+     *************************************/
+    // Set the min and max us for the eye servos
+    servo_eye_right.set_max_us(SERVO_EYE_RIGHT_MAX_US);
+    servo_eye_right.set_min_us(SERVO_EYE_RIGHT_MIN_US);
+    servo_eye_right.set_neutral_us(SERVO_EYE_RIGHT_NEUTRAL_US);
+    // left eye
+    servo_eye_left.set_max_us(SERVO_EYE_LEFT_MAX_US);
+    servo_eye_left.set_min_us(SERVO_EYE_LEFT_MIN_US);
+    servo_eye_left.set_neutral_us(SERVO_EYE_LEFT_NEUTRAL_US);
+
+    /*************************************
+     * Setup the neck servos
+     *************************************/
+    servo_neck_pitch.set_max_us(SERVO_NECK_PITCH_MAX_US);
+    servo_neck_pitch.set_min_us(SERVO_NECK_PITCH_MIN_US);
+    servo_neck_pitch.set_neutral_us(SERVO_NECK_PITCH_NEUTRAL_US);
+
+    servo_neck_yaw.set_max_us(SERVO_NECK_YAW_MAX_US);
+    servo_neck_yaw.set_min_us(SERVO_NECK_YAW_MIN_US);
+    servo_neck_yaw.set_neutral_us(SERVO_NECK_YAW_NEUTRAL_US);
+
+    // Set all motors to neutral
+    servo_neck_yaw.set_angle(0.0f, 0);
+    servo_neck_pitch.set_angle(0.0f, 0);
+    servo_eye_left.set_scalar(0.0f, 0);
+    servo_eye_right.set_scalar(0.0f, 0);
 }
 
 /**
@@ -405,6 +469,15 @@ void onConnectedGamepad(GamepadPtr gp) {
  * @param gp The disconnected gamepad.
  */
 void onDisconnectedGamepad(GamepadPtr gp) {
+    // If the controller is the main controller, stop WALL-E
+    if (gp == drive_controller.getGamepad()) {
+        if (pca9685_connected) {
+            motor_r.set_speed(0);
+            motor_l.set_speed(0);
+        }
+    }
+
+    // Find the gamepad in the list of controllers and update the entry
     bool foundGamepad = false;
 
     for (int i = 0; i < MAX_NUM_GAMEPADS; i++) {
@@ -447,13 +520,140 @@ void updateAll() {
 
     /*----------- Motors/Servors -------------------------*/
     if (pca9685_connected) {
+        servo_neck_yaw.set_scalar(neck_yaw_position, 0);
+        servo_neck_pitch.set_scalar(neck_pitch_position, 0);
+        servo_eye_left.set_scalar(eye_left_position, 0);
+        servo_eye_right.set_scalar(eye_right_position, 0);
+
         motor_r.update();
         motor_l.update();
+        servo_neck_yaw.update();
+        servo_neck_pitch.update();
+        servo_eye_left.update();
+        servo_eye_right.update();
+
+        // ServoPlayer
+        servo_player.update();
     }
+
+#ifdef ENABLE_AUDIO
+    /*----------- Audio Player ---------------------------*/
+    dfmp3.loop();
+#endif
 
     /*----------- Controllers ----------------------------*/
     for (unsigned int i = 0; i < MAX_NUM_GAMEPADS; i++) {
         controllers[i]->update();
     }
     
+    /*----------- Buttons --------------------------------*/
+    for (unsigned int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
+        buttons[i]->update();
+    }
+}
+
+/**
+ * @brief Plays a random track from the audio_track_random_list array. This list is defined in config.hpp.
+ * 
+ */
+void playRandomTrack() {
+    int random_index = random(sizeof(audio_track_random_list) / sizeof(audio_track_random_list[0]));
+    int track_index = audio_track_random_list[random_index];
+    dfmp3.playMp3FolderTrack(track_index);
+}
+
+void mapInputs(float dt) {
+    /*----------- Motor Speed ----------------------------*/
+    if (pca9685_connected) {
+        float left_motor_speed = 0.0f;
+        float right_motor_speed = 0.0f;
+        mapThumbstick(drive_controller.thumbstickX(), 
+                    -drive_controller.thumbstickY(), 
+                    &left_motor_speed, 
+                    &right_motor_speed
+                    );
+        motor_r.set_speed(right_motor_speed);
+        motor_l.set_speed(left_motor_speed);
+    }
+
+    if (drive_controller.xWasPressed()) {
+        track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES));
+        float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
+        float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
+
+        motor_r.set_speed_limit(motor_speed_factor);
+        motor_l.set_speed_limit(motor_speed_factor);
+        motor_r.set_acceleration(motor_acceleration);
+        motor_l.set_acceleration(motor_acceleration);
+    }
+
+    if (drive_controller.circleWasPressed()) {
+        track_velocity_profile_idx = max((track_velocity_profile_idx - 1), 0);
+        float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
+        float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
+
+        motor_r.set_speed_limit(motor_speed_factor);
+        motor_l.set_speed_limit(motor_speed_factor);
+        motor_r.set_acceleration(motor_acceleration);
+        motor_l.set_acceleration(motor_acceleration);
+    }
+
+    /*----------- Head Movement --------------------------*/
+    if (!(aux_controller.l2IsPressed() || drive_controller.l2IsPressed() ||
+          drive_controller.l1IsPressed())) {
+        neck_pitch_position =
+            constrain(neck_pitch_position + HEAD_YAW_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+
+        neck_yaw_position =
+            constrain(neck_yaw_position + HEAD_PITCH_RATE_PER_S * aux_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
+    }
+
+    if (aux_controller.l2IsPressed()) {
+        eye_left_position =
+            constrain(eye_left_position + EYE_MOVE_RATE_PER_S * -drive_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+
+        eye_right_position =
+            constrain(eye_right_position + EYE_MOVE_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+    }
+    /*----------- Arm Movement ---------------------------*/
+    // TODO: Map this out
+    if (drive_controller.l2IsPressed()) {
+        // TODO: Add in left/right arm movement
+    } else if (drive_controller.l1IsPressed()) {
+        // TODO: Add in left/right hand movement
+    }
+
+    /*----------- Animations -----------------------------*/
+    if (drive_controller.upWasPressed()) {
+        servo_player.playAnimation(&head_animations[0]);
+    } else if (drive_controller.rightWasPressed()) {
+        servo_player.playAnimation(&head_animations[1]);
+    } else if (drive_controller.downWasPressed()) {
+        servo_player.playAnimation(&head_animations[2]);
+    } else if (drive_controller.leftWasPressed()) {
+        servo_player.playAnimation(&head_animations[3]);
+    }
+
+    /*----------- Sounds ---------------------------------*/
+    if (aux_controller.upWasPressed()) {
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[0]);
+    } else if (aux_controller.rightWasPressed()) {
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[1]);
+    } else if (aux_controller.downWasPressed()) {
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[2]);
+    } else if (aux_controller.leftWasPressed()) {
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[3]);
+    }
+
+    /*----------- General ---------------------------------*/
+    if (aux_controller.psWasPressed()) {
+        // Swap this controller to the main controller
+        GamepadPtr temp = drive_controller.getGamepad();
+        drive_controller.setGamepad(aux_controller.getGamepad());
+        aux_controller.setGamepad(temp);
+    }
+
+    /*----------- Buttons --------------------------------*/
+    // TODO
+
 }

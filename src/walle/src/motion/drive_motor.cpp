@@ -7,12 +7,20 @@ DriveMotor::DriveMotor(Adafruit_PWMServoDriver *pca9685, int pin, int min_us, in
 
 void DriveMotor::set_speed(float speed) {
     // Constrain speed between -1.0 and 1.0
-    _target_speed = constrain(speed, -1.0f, 1.0f);
+    speed = constrain(speed, -1.0f, 1.0f);
+    // Map the given speed acording to the max speed
+    _target_speed = speed * _max_speed;
 }
 
 void DriveMotor::set_speed_limit(float max_speed) {
     // constrain the max speed to the min and max
     _max_speed = constrain(max_speed, -1.0f, 1.0f);
+    // Check if the current target speed is greater than the new max speed and update it if necessary
+    if (_target_speed > _max_speed) {
+        _target_speed = _max_speed;
+    } else if (_target_speed < -_max_speed) {
+        _target_speed = -_max_speed;
+    }
 }
 
 void DriveMotor::set_acceleration(float acceleration_per_ss) {

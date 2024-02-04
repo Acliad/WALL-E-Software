@@ -4,6 +4,16 @@ HeadKeyframe::HeadKeyframe(unsigned long duration_ms)
     : _next(nullptr), _prev(nullptr), _head(nullptr), _duration_ms(duration_ms) {
 }
 
+HeadKeyframe::~HeadKeyframe() {
+    // Iterate through the keyframe's servo keyframes and delete them
+    servo_keyframe *current = _head;
+    while (current != nullptr) {
+        servo_keyframe *next = current->_next;
+        delete current;
+        current = next;
+    }
+}
+
 void HeadKeyframe::add_servo_angle(ServoMotor *servo, float angle, ramp_mode ramp_mode) {
     // Convert angle to a scalar and add the keyframe
     add_servo_scalar(servo, servo->angle_to_scalar(angle), ramp_mode);
