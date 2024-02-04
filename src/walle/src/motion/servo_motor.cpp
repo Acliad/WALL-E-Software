@@ -75,6 +75,10 @@ float ServoMotor::get_angle() {
     return us_to_angle(_current_us);
 }
 
+float ServoMotor::get_scalar() {
+    return us_to_scalar(_current_us);
+}
+
 float ServoMotor::angle_to_scalar(float angle_deg) {
     // Convert the given angle to the corresponding scalar, accounting for asymetric mapping
     if (angle_deg > _neutral_angle_deg) {
@@ -90,6 +94,15 @@ float ServoMotor::us_to_angle(int us) {
         return (float)(us - _neutral_us) / _angle_positive_to_us_slope + _neutral_angle_deg;
     } else {
         return (float)(us - _neutral_us) / _angle_negative_to_us_slope + _neutral_angle_deg;
+    }
+}
+
+float ServoMotor::us_to_scalar(int us) {
+    // Returns the scalar corresponding to the given us
+    if (us > _neutral_us) {
+        return (float)(us - _neutral_us) / (_max_us - _neutral_us);
+    } else {
+        return (float)(us - _neutral_us) / (_neutral_us - _min_us);
     }
 }
 

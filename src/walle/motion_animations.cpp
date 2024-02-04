@@ -51,8 +51,8 @@ void setup_sad(ServoContext servos) {
     // Make WALL-E look sad by putting both eyes down, then tilting the head down
     // Eyes droop
     HeadKeyframe *sad_keyframe1 = new HeadKeyframe(2000);
-    sad_keyframe1->add_servo_scalar(servos.servo_eye_left, 1.0);
-    sad_keyframe1->add_servo_scalar(servos.servo_eye_right, -1.0);
+    sad_keyframe1->add_servo_scalar(servos.servo_eye_left, -1.0);
+    sad_keyframe1->add_servo_scalar(servos.servo_eye_right, 1.0);
     // Tilt head down
     HeadKeyframe *sad_keyframe2 = new HeadKeyframe(2000);
     sad_keyframe2->add_servo_scalar(servos.servo_neck_pitch, -0.8);

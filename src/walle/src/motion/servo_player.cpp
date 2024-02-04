@@ -10,10 +10,24 @@ ServoPlayer& ServoPlayer::getInstance() {
     return instance;
 }
 
-void ServoPlayer::playAnimation(HeadAnimation *animation) {
+void ServoPlayer::play(HeadAnimation *animation) {
     // Play the animation
     _current_animation = animation;
     _current_animation->play();
+}
+
+void ServoPlayer::stop() {
+    // Stop the current animation
+    if (_current_animation != nullptr) {
+        _current_animation->stop();
+    }
+}
+
+bool ServoPlayer::isPlaying() {
+    if (_current_animation != nullptr) {
+        return _current_animation->isPlaying();
+    }
+    return false;
 }
 
 void ServoPlayer::update() {

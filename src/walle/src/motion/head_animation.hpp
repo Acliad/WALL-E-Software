@@ -27,6 +27,8 @@ class HeadAnimation {
     void stop();
     void update();
 
+    bool isPlaying();
+
   private:
     HeadKeyframe *_head;
     HeadKeyframe *_current_keyframe;

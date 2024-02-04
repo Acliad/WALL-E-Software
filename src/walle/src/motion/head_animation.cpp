@@ -32,6 +32,7 @@ void HeadAnimation::play() {
     // Start the animation
     _playing = true;
     _current_keyframe = _head;
+    _keyframe_has_started = false;
     _frame_start_time_ms = millis();
 }
 
@@ -72,4 +73,8 @@ void HeadAnimation::update() {
 
     // Otherwise we're in the middle of a keyframe, update it
     _current_keyframe->update_keyframe();
+}
+
+bool HeadAnimation::isPlaying() {
+    return _playing;
 }

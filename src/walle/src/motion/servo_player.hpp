@@ -11,7 +11,9 @@ public:
 
     static ServoPlayer& getInstance();
 
-    void playAnimation(HeadAnimation* animation);
+    void play(HeadAnimation* animation);
+    void stop();
+    bool isPlaying();
     void update();
 
 private:

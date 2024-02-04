@@ -589,28 +589,65 @@ void updateAll() {
 
     /*----------- Motors/Servors -------------------------*/
     if (pca9685_connected) {
-        servo_neck_yaw.set_scalar(neck_yaw_position, 0);
-        servo_neck_pitch.set_scalar(neck_pitch_position, 0);
-        servo_eye_left.set_scalar(eye_left_position, 0);
-        servo_eye_right.set_scalar(eye_right_position, 0);
-
+        // Update motors
         motor_r.update();
         motor_l.update();
-        servo_neck_yaw.update();
-        servo_neck_pitch.update();
-        servo_eye_left.update();
-        servo_eye_right.update();
-        servo_shoulder_left.update();
-        servo_shoulder_right.update();
-        servo_elbow_left.update();
-        servo_elbow_right.update();
-        servo_wrist_left.update();
-        servo_wrist_right.update();
-        servo_hand_left.update();
-        servo_hand_right.update();
 
-        // ServoPlayer
-        servo_player.update();
+        // Update servos unless animating
+        if (servo_player.isPlaying()) {
+            servo_player.update();
+
+            // Update the tracked positions
+            neck_yaw_position = servo_neck_yaw.get_scalar();
+            neck_pitch_position = servo_neck_pitch.get_scalar();
+
+            eye_left_position = servo_eye_left.get_scalar();
+            eye_right_position = servo_eye_right.get_scalar();
+
+            shoulder_left_position = servo_shoulder_left.get_scalar();
+            shoulder_right_position = servo_shoulder_right.get_scalar();
+
+            elbow_left_position = servo_elbow_left.get_scalar();
+            elbow_right_position = servo_elbow_right.get_scalar();
+
+            wrist_left_position = servo_wrist_left.get_scalar();
+            wrist_right_position = servo_wrist_right.get_scalar();
+
+            hand_left_position = servo_hand_left.get_scalar();
+            hand_right_position = servo_hand_right.get_scalar();
+        } else {
+            // Set servo positions
+            servo_neck_yaw.set_scalar(neck_yaw_position, 0);
+            servo_neck_pitch.set_scalar(neck_pitch_position, 0);
+
+            servo_eye_left.set_scalar(eye_left_position, 0);
+            servo_eye_right.set_scalar(eye_right_position, 0);
+
+            servo_shoulder_left.set_scalar(shoulder_left_position, 0);
+            servo_shoulder_right.set_scalar(shoulder_right_position, 0);
+            
+            servo_elbow_left.set_scalar(elbow_left_position, 0);
+            servo_elbow_right.set_scalar(elbow_right_position, 0);
+
+            servo_wrist_left.set_scalar(wrist_left_position, 0);
+            servo_wrist_right.set_scalar(wrist_right_position, 0);
+
+            servo_hand_left.set_scalar(hand_left_position, 0);
+            servo_hand_right.set_scalar(hand_right_position, 0);
+
+            servo_neck_yaw.update();
+            servo_neck_pitch.update();
+            servo_eye_left.update();
+            servo_eye_right.update();
+            servo_shoulder_left.update();
+            servo_shoulder_right.update();
+            servo_elbow_left.update();
+            servo_elbow_right.update();
+            servo_wrist_left.update();
+            servo_wrist_right.update();
+            servo_hand_left.update();
+            servo_hand_right.update();
+        }
     }
 
 #ifdef ENABLE_AUDIO
@@ -721,13 +758,16 @@ void mapInputs(float dt) {
 
     /*----------- Animations -----------------------------*/
     if (drive_controller.upWasPressed()) {
-        servo_player.playAnimation(head_animations[0]);
+        servo_player.play(head_animations[0]);
     } else if (drive_controller.rightWasPressed()) {
-        servo_player.playAnimation(head_animations[1]);
+        servo_player.play(head_animations[1]);
     } else if (drive_controller.downWasPressed()) {
-        servo_player.playAnimation(head_animations[2]);
+        servo_player.play(head_animations[2]);
     } else if (drive_controller.leftWasPressed()) {
-        servo_player.playAnimation(head_animations[3]);
+        servo_player.play(head_animations[3]);
+    }
+    if (drive_controller.thumbstickWasPressed()) {
+        servo_player.stop();
     }
 
     /*----------- Sounds ---------------------------------*/
