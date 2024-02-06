@@ -1,55 +1,56 @@
 #include "display.hpp"
 
 
-SolarDisplay::SolarDisplay(TFT_eSPI& tft)
-    : tft(tft), solar_bars(tft), animation() {
+Display::Display(TFT_eSPI& tft)
+    : tft(tft), solar_panel(), animation() {
     }
 
-void SolarDisplay::setBar(unsigned int index, bool on) {
+void Display::setBar(unsigned int index, bool on) {
     // animation is active, don't update the display. This forces the user to explicitly stop the animation. 
     if(!this->animation.isRunning()) {
-        this->solar_bars.setBar(index, on);
+        this->solar_panel.setBar(index, on);
     }
 }
 
-void SolarDisplay::begin() {
+void Display::begin() {
     this->tft.begin();
     // Make sure things are cleared
     this->tft.fillScreen(_DISPLAY_BACKGROUND_COLOR);
     this->_draw_static_display_elements();
 }
 
-bool SolarDisplay::isBarOn(unsigned int index) {
-    return this->solar_bars.isBarOn(index);
+bool Display::isBarOn(unsigned int index) {
+    return this->solar_panel.isBarOn(index);
 }
 
-void SolarDisplay::update() {
+void Display::update() {
     this->animation.update();
+    this->solar_panel.drawOn(this->tft);
 }
 
-void SolarDisplay::setAnimation(AnimateLevel animation) {
-    animation.setBars(&this->solar_bars);
+void Display::setAnimation(AnimateSolarPanel animation) {
+    animation.setSolarPanel(&this->solar_panel);
     this->animation = animation;
 }
 
-AnimateLevel SolarDisplay::getAnimation() {
+AnimateSolarPanel Display::getAnimation() {
     return this->animation;
 }
 
-void SolarDisplay::startAnimation() {
+void Display::startAnimation() {
     this->animation.start();
 }
 
-void SolarDisplay::stopAnimation() {
+void Display::stopAnimation() {
     this->animation.stop();
 }
 
-bool SolarDisplay::isAnimationRunning() {
+bool Display::isAnimationRunning() {
     return this->animation.isRunning();
 }
 
-// TODO: Move the solar specifc stuff to a solar display class (currently solar_bars)
-void SolarDisplay::_draw_static_display_elements() {
+// TODO: Move the solar specifc stuff to a solar display class (currently solar_panel)
+void Display::_draw_static_display_elements() {
     // Draw the SOLAR CHARGE LEVEL text
     this->tft.setTextSize(_DISPLAY_FONT_SIZE);
     this->tft.setTextColor(_DISPLAY_COLOR, TFT_BLACK);

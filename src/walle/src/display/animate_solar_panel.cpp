@@ -1,14 +1,15 @@
-#include "animate_level.hpp"
+#include "animate_solar_panel.hpp"
 
-AnimateLevel::AnimateLevel()
-    : first_keyframe(), current_keyframe(), last_keyframe(), last_update_time_ms(), solar_bars(), num_bars_on(),
-      show_sun(false), running(false), time_between_bar_updates_ms(), num_bars_to_update(), incrementing(false) {
+AnimateSolarPanel::AnimateSolarPanel()
+    : first_keyframe(nullptr), current_keyframe(nullptr), last_keyframe(nullptr), last_update_time_ms(0),
+      solar_panel(nullptr), num_bars_on(0), show_sun(false), running(false), time_between_bar_updates_ms(0),
+      num_bars_to_update(0), incrementing(false) {
 }
 
-void AnimateLevel::addKeyframe(int num_bars_on, unsigned int duration_ms, bool show_sun) {
+void AnimateSolarPanel::addKeyframe(int num_bars_on, unsigned int duration_ms, bool show_sun) {
     // Creates Keyframe from the arguments and add it to the animation.  
     Keyframe* new_keyframe = new Keyframe;
-    for(int i = 0; i < _BARS_NUM_BARS; i++) {
+    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = i < num_bars_on;
     }
     new_keyframe->show_sun = show_sun;
@@ -18,10 +19,10 @@ void AnimateLevel::addKeyframe(int num_bars_on, unsigned int duration_ms, bool s
     this->_appendKeyframe(new_keyframe);
 }
 
-void AnimateLevel::addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms, bool show_sun) {
+void AnimateSolarPanel::addKeyframeFromArray(bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms, bool show_sun) {
     // Creates Keyframe from the arguments and add it to the animation.  
     Keyframe* new_keyframe = new Keyframe;
-    for(int i = 0; i < _BARS_NUM_BARS; i++) {
+    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = bar_status[i];
     }
     new_keyframe->show_sun = show_sun;
@@ -31,7 +32,7 @@ void AnimateLevel::addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigne
     this->_appendKeyframe(new_keyframe);
 }
 
-void AnimateLevel::addPauseKeyframe(unsigned int duration_ms) {
+void AnimateSolarPanel::addPauseKeyframe(unsigned int duration_ms) {
     // Pauses the animation for the given duration. This is done by adding a keyframe with the same bar status as the
     // current keyframe and the given duration.
     // Find the last keyframe
@@ -44,7 +45,7 @@ void AnimateLevel::addPauseKeyframe(unsigned int duration_ms) {
 
 // Create a function called _appendKeyframe that accepts a keyframe and appends it to the end of the animation. This
 //  is a helper function for the overloaded addKeyframe function.
-void AnimateLevel::_appendKeyframe(Keyframe *new_keyframe) {
+void AnimateSolarPanel::_appendKeyframe(Keyframe *new_keyframe) {
     // If the keyframe is the first Keyframe in the animation, set it as the first keyframe and the current keyframe.
     // Otherwise, add it to the end of the animation.
     if (this->first_keyframe == nullptr) {
@@ -60,30 +61,30 @@ void AnimateLevel::_appendKeyframe(Keyframe *new_keyframe) {
     }
 }
 
-void AnimateLevel::start() {
+void AnimateSolarPanel::start() {
     // Start the animation by setting the current keyframe to the first keyframe and setting the running flag to true.
     this->current_keyframe = this->first_keyframe;
     this->last_keyframe = this->first_keyframe;
     this->last_update_time_ms = millis();
     this->time_between_bar_updates_ms = this->current_keyframe->duration_ms;
     // Force all the bars to match the first keyframe. Could use
-    // solar_bars->setAllBars(this->current_keyframe->bar_status) but we also want to count the number of bars on so
+    // solar_panel->setAllBars(this->current_keyframe->bar_status) but we also want to count the number of bars on so
     // loop manually.
     this->num_bars_on = 0;
-    for(int i = 0; i < _BARS_NUM_BARS; i++) {
-        this->solar_bars->setBar(i, this->current_keyframe->bar_status[i]);
+    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
+        this->solar_panel->setBar(i, this->current_keyframe->bar_status[i]);
         this->num_bars_on += this->current_keyframe->bar_status[i];
     }
-    this->solar_bars->setSun(this->current_keyframe->show_sun);
+    this->solar_panel->setSun(this->current_keyframe->show_sun);
     this->running = true;
 }
 
-void AnimateLevel::stop() {
+void AnimateSolarPanel::stop() {
     // Stop the animation by setting the running flag to false.
     this->running = false;
 }
 
-void AnimateLevel::update() {
+void AnimateSolarPanel::update() {
     // First, check if we're running. If we're not, do nothing. Then see if the current keyfram is the same as the last
     // keyframe (current_keyframe is incremented when a keyframe finishes). If it is, check if the bars need to be
     // updated. If they do, update them. If it is not, calculate the time between each bar update and determine if we
@@ -120,7 +121,7 @@ void AnimateLevel::update() {
                 this->current_keyframe->duration_ms / max(this->num_bars_to_update - 1, 1);
 
             // Set the sun status
-            this->solar_bars->setSun(this->current_keyframe->show_sun);
+            this->solar_panel->setSun(this->current_keyframe->show_sun);
             this->last_keyframe = this->current_keyframe;
             // Update bars for start of frame
             this->_updateBars();
@@ -128,38 +129,38 @@ void AnimateLevel::update() {
     }
 }
 
-void AnimateLevel::_updateBars() {
+void AnimateSolarPanel::_updateBars() {
     if (this->incrementing && this->num_bars_to_update > 0) {
-        this->solar_bars->setBar(this->num_bars_on, true);
+        this->solar_panel->setBar(this->num_bars_on, true);
         this->num_bars_on++;
     } else if (this->num_bars_to_update > 0) {
         // need to subtract 1 from num_bars_on otherwise it turns off the bar above the last bar that was
         // turned on. Don't have to do this for incrementing case because we are trying to turn on the bar
         // above the last bar that was turned on.
-        this->solar_bars->setBar(this->num_bars_on - 1, false);
+        this->solar_panel->setBar(this->num_bars_on - 1, false);
         this->num_bars_on--;
     }
     this->num_bars_to_update--;
     this->last_update_time_ms = millis();
 }
 
-Keyframe *AnimateLevel::getCurrentKeyframe() { 
+Keyframe *AnimateSolarPanel::getCurrentKeyframe() { 
     return this->current_keyframe; 
 }
 
-void AnimateLevel::setBars(SolarBars *solar_bars) {
-    this->solar_bars = solar_bars;
+void AnimateSolarPanel::setSolarPanel(SolarPanel *solar_panel) {
+    this->solar_panel = solar_panel;
 }
 
-bool AnimateLevel::isRunning() { 
+bool AnimateSolarPanel::isRunning() { 
     return this->running; 
 }
 
-void AnimateLevel::updateKeyframe(unsigned int index, bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms) {
+void AnimateSolarPanel::updateKeyframe(unsigned int index, bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms) {
     // Update the keyframe at the given index with the given values.
     // Create the new keyframe
     Keyframe* new_keyframe = new Keyframe;
-    for(int i = 0; i < _BARS_NUM_BARS; i++) {
+    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = bar_status[i];
     }
     new_keyframe->duration_ms = duration_ms;
@@ -182,11 +183,11 @@ void AnimateLevel::updateKeyframe(unsigned int index, bool bar_status[_BARS_NUM_
     }
 }
 
-int AnimateLevel::_getNumberOfBarsToUpdate(bool last_bar_status[_BARS_NUM_BARS], bool current_bar_status[_BARS_NUM_BARS]) { 
+int AnimateSolarPanel::_getNumberOfBarsToUpdate(bool last_bar_status[_SOLAR_PANEL_NUM_BARS], bool current_bar_status[_SOLAR_PANEL_NUM_BARS]) { 
     // Returns the difference in the number of bars there are on between last_bar_status and current_bar_status. Returns
     // a negative value if there are more bars on in last_bar_status than current_bar_status (i.e., decrementing)
     int num_bars_on = 0;
-    for(int i = 0; i < _BARS_NUM_BARS; i++) {
+    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
         num_bars_on += current_bar_status[i] - last_bar_status[i];
     }
 

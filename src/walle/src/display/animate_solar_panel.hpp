@@ -1,19 +1,19 @@
 /**
- * @file animate_level.hpp
+ * @file animate_solar_panel.hpp
  * @brief This file defines the animation class for the solar bars.
  *
  * This file defines the animation class for the solar bars. This class is used to create animations for the solar bars.
  * The animation class is used to create a linked list of keyframes. Each keyframe contains an array of bar statuses and
  * a duration. A keyframe will move the number of bars from the previous keyframe to the current in a linear fashion.
- * 
- * For example: 
- *  - keyframe 3 has 3 bars 
- *  - on keyframe 4 has 5 bars on 
- *  - duration is 1000 ms 
+ *
+ * For example:
+ *  - keyframe 3 has 3 bars
+ *  - on keyframe 4 has 5 bars on
+ *  - duration is 1000 ms
  * Animating from keyframe 3 to keyframe 4 will turn on bar 4 after 500 ms and bar 5 after 1000 ms
  *
- * The bar_status array in a keyfram should always have sequential bars turned on. For example: 
- * [1, 1, 1, 1, 0, 0, 0....0] is valid 
+ * The bar_status array in a keyfram should always have sequential bars turned on. For example:
+ * [1, 1, 1, 1, 0, 0, 0....0] is valid
  * [1, 0, 1, 1, 0, 1, 0....0] is not valid
  *
  * The first keyframe should have all bars in the position you want your anmiation to start and the duration should be
@@ -27,8 +27,8 @@
 #ifndef ANIMATE_H
 #define ANIMATE_H
 
+#include "solar_panel.hpp"
 #include <Arduino.h>
-#include "solar_bars.hpp"
 
 // Create a struct to define a keyframe. This keyframe should contain the following:
 //     - An array of booleans representing the status of each bar
@@ -40,10 +40,10 @@
 // very simple, I think it makes more sense to have the user pass the parameters to the animation object. If
 // animations become more complex, we can change this.
 struct Keyframe {
-    bool bar_status[_BARS_NUM_BARS];
-    bool show_sun;
+    bool         bar_status[_SOLAR_PANEL_NUM_BARS];
+    bool         show_sun;
     unsigned int duration_ms;
-    Keyframe* next;
+    Keyframe    *next;
 };
 
 // Create a class to define an animation. The animation should do the following:
@@ -71,38 +71,37 @@ struct Keyframe {
 //        - Update the keyframe at the given index with the given values
 //        - Return NULL
 
-class AnimateLevel {
-public:
-    AnimateLevel();
+class AnimateSolarPanel {
+  public:
+    AnimateSolarPanel();
     void addKeyframe(int num_bars_on, unsigned int duration_ms, bool show_sun = true);
-    void addKeyframeFromArray(bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms, bool show_sun = true);
+    void addKeyframeFromArray(bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms, bool show_sun = true);
     void addPauseKeyframe(unsigned int duration_ms);
     void start();
     void stop();
     void update();
-    Keyframe* getCurrentKeyframe();
-    // TODO: Rename this method to something more descriptive
-    void setBars(SolarBars* solar_bars);
-    bool isRunning();
-    void updateKeyframe(unsigned int index, bool bar_status[_BARS_NUM_BARS], unsigned int duration_ms);
+    Keyframe *getCurrentKeyframe();
+    void      setSolarPanel(SolarPanel *solar_panel);
+    bool      isRunning();
+    void      updateKeyframe(unsigned int index, bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms);
 
-private:
-    Keyframe* first_keyframe;
-    Keyframe* current_keyframe;
-    Keyframe* last_keyframe; // Keyframe we were on last time update() was called. Initialzes to first_keyframe
-    SolarBars* solar_bars;
-    unsigned int num_bars_on;
-    bool show_sun;
-    bool running;
+  private:
+    Keyframe     *first_keyframe;
+    Keyframe     *current_keyframe;
+    Keyframe     *last_keyframe; // Keyframe we were on last time update() was called. Initialzes to first_keyframe
+    SolarPanel   *solar_panel;
+    unsigned int  num_bars_on;
+    bool          show_sun;
+    bool          running;
     unsigned long last_update_time_ms;
     unsigned long time_between_bar_updates_ms;
-    int num_bars_to_update; // Number of bars that need to be updated
-    bool incrementing;
+    int           num_bars_to_update; // Number of bars that need to be updated
+    bool          incrementing;
 
     void _appendKeyframe(Keyframe *keyframe);
-    int _getNumberOfBarsToUpdate(bool last_bar_status[_BARS_NUM_BARS], bool current_bar_status[_BARS_NUM_BARS]);
+    int  _getNumberOfBarsToUpdate(bool last_bar_status[_SOLAR_PANEL_NUM_BARS],
+                                  bool current_bar_status[_SOLAR_PANEL_NUM_BARS]);
     void _updateBars();
 };
-
 
 #endif

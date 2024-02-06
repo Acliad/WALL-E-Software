@@ -17,8 +17,8 @@
 #include <Arduino.h>
 
 #include "display_common.hpp"
-#include "solar_bars.hpp"
-#include "animate_level.hpp"
+#include "solar_panel.hpp"
+#include "animate_solar_panel.hpp"
 #include "EurostileBold31.h"
 
 /********** Font Defines **********/
@@ -30,9 +30,9 @@
  *        display and updating it. It also provides an interface for setting the status of the solar bars and animating 
  *        them with keyframes. 
  */
-class SolarDisplay {
+class Display {
 public:
-    SolarDisplay(TFT_eSPI& tft);
+    Display(TFT_eSPI& tft);
 
     /**
      * @brief Initialize the display for use
@@ -60,8 +60,8 @@ public:
      * 
      * @param animation The animation to set
      */
-    void setAnimation(AnimateLevel animation);
-    AnimateLevel getAnimation();
+    void setAnimation(AnimateSolarPanel animation);
+    AnimateSolarPanel getAnimation();
 
     /**
      * @brief Start the animation
@@ -85,8 +85,8 @@ public:
 private:
 
     TFT_eSPI& tft;
-    SolarBars solar_bars;
-    AnimateLevel animation;
+    SolarPanel solar_panel;
+    AnimateSolarPanel animation;
 
     /**
      * @brief Initialize the display appearance by drawing the sun and SOLAR CHARGE LEVEL text

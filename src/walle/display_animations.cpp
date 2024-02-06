@@ -1,11 +1,11 @@
 #include "display_animations.hpp"
-#include "src/display/animate_level.hpp"
+#include "src/display/animate_solar_panel.hpp"
 #include "src/motion/animate_servo.hpp"
 
 // Define new animations here
 
 namespace DisplayAnimations {
-AnimateLevel startup = AnimateLevel();
+AnimateSolarPanel startup = AnimateSolarPanel();
 // Create setup functions for each animation.
 // NOTE: Don't forget to call these functions in setup_animations().
 void setup_startup() {

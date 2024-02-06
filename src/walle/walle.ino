@@ -34,7 +34,7 @@ const unsigned int BUTTON_PIN_SUN    = 33;
  **************************************************************/
 /*----------- Display ------------------------------------*/
 TFT_eSPI tft = TFT_eSPI();
-SolarDisplay display = SolarDisplay(tft);
+Display display = Display(tft);
 
 /*----------- PCA9685 PWM Module -------------------------*/
 bool pca9685_connected = false;
