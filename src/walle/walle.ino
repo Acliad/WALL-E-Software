@@ -487,6 +487,13 @@ void onConnectedGamepad(GamepadPtr gp) {
         if (controllers[i]->getGamepad() == nullptr) {
             controllers[i]->setGamepad(gp);
             foundEmptySlot = true;
+            // NOTE: There seemst to be a bug related to scan_evt that will cause the controllers to sometimes
+            // discconect and print a message in the console like: "FEX 7 0" or "FEX 7 1". Refer to #43
+            // https://github.com/ricardoquesada/bluepad32/issues/43 for more information. That issue reported that
+            // disabling new connections would fix the issue, so here's the workaround. 
+            if (i == MAX_NUM_GAMEPADS-1) {
+                BP32.enableNewBluetoothConnections(false);
+            }
             Serial.printf("CALLBACK: Gamepad is connected, index=%d\n", i);
             break;
         }
@@ -515,7 +522,6 @@ void onDisconnectedGamepad(GamepadPtr gp) {
 
     // Find the gamepad in the list of controllers and update the entry
     bool foundGamepad = false;
-
     for (int i = 0; i < MAX_NUM_GAMEPADS; i++) {
         if (controllers[i]->getGamepad() == gp) {
             Serial.printf("CALLBACK: Gamepad is disconnected from index=%d\n", i);
@@ -528,6 +534,9 @@ void onDisconnectedGamepad(GamepadPtr gp) {
     if (!foundGamepad) {
         Serial.println("CALLBACK: Gamepad disconnected, but not found in myGamepads");
     }
+
+    // NOTE: See note in onConnectedGamepad() for more information
+    BP32.enableNewBluetoothConnections(true);
 }
 
 /**
