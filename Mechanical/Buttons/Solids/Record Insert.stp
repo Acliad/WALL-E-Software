@@ -10,7 +10,7 @@ FILE_DESCRIPTION(
 
 FILE_NAME(
 /* name */ 'Record Insert.stp',
-/* time_stamp */ '2024-01-13T08:30:57-06:00',
+/* time_stamp */ '2024-02-08T17:53:19-06:00',
 /* author */ (''),
 /* organization */ (''),
 /* preprocessor_version */ 'ST-DEVELOPER v20',
@@ -93,13 +93,13 @@ POSITIVE_RATIO_MEASURE(7850.),#46);
 #73=DIRECTION('ref_axis',(-1.,0.,0.));
 #74=CARTESIAN_POINT('',(0.,0.,0.));
 #75=CARTESIAN_POINT('Origin',(0.,0.,9.2));
-#76=CARTESIAN_POINT('',(5.5,6.73555739531044E-16,9.));
-#77=CARTESIAN_POINT('Origin',(0.,0.,9.));
+#76=CARTESIAN_POINT('',(5.5,6.73555739531044E-16,8.8));
+#77=CARTESIAN_POINT('Origin',(0.,0.,8.8));
 #78=CARTESIAN_POINT('',(5.5,6.73555739531044E-16,9.2));
 #79=CARTESIAN_POINT('',(5.5,-6.73555739531044E-16,9.2));
 #80=CARTESIAN_POINT('Origin',(0.,0.,9.2));
 #81=CARTESIAN_POINT('Origin',(0.,0.,9.2));
-#82=CARTESIAN_POINT('Origin',(0.,0.,9.));
+#82=CARTESIAN_POINT('Origin',(0.,0.,8.8));
 #83=UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(0.01),#87,
 'DISTANCE_ACCURACY_VALUE',
 'Maximum model space distance between geometric entities at asserted c

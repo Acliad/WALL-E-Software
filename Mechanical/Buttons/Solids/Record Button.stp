@@ -10,7 +10,7 @@ FILE_DESCRIPTION(
 
 FILE_NAME(
 /* name */ 'Record Button.stp',
-/* time_stamp */ '2024-01-13T08:30:57-06:00',
+/* time_stamp */ '2024-02-08T17:53:19-06:00',
 /* author */ (''),
 /* organization */ (''),
 /* preprocessor_version */ 'ST-DEVELOPER v20',
@@ -1760,9 +1760,9 @@ POSITIVE_RATIO_MEASURE(7850.),#1251);
 #1708=DIRECTION('center_axis',(1.,0.,0.));
 #1709=DIRECTION('ref_axis',(0.,1.,0.));
 #1710=CARTESIAN_POINT('',(0.,0.,0.));
-#1711=CARTESIAN_POINT('Origin',(0.,0.,9.));
-#1712=CARTESIAN_POINT('',(5.5,6.73555739531044E-16,9.));
-#1713=CARTESIAN_POINT('Origin',(0.,0.,9.));
+#1711=CARTESIAN_POINT('Origin',(0.,0.,8.8));
+#1712=CARTESIAN_POINT('',(5.5,6.73555739531044E-16,8.8));
+#1713=CARTESIAN_POINT('Origin',(0.,0.,8.8));
 #1714=CARTESIAN_POINT('Origin',(0.,0.,10.));
 #1715=CARTESIAN_POINT('',(5.5,6.73555739531044E-16,10.));
 #1716=CARTESIAN_POINT('Origin',(0.,0.,10.));
