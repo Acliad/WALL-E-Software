@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "display_common.hpp"
+#include "EurostileBold31.h"
 
 #define _SOLAR_PANEL_NUM_BARS 10
 
@@ -14,6 +15,9 @@
 
 #define _BARS_CORNER_RADIUS 2
 #define _BARS_RECT_SPACING 18
+
+#define _SOLAR_FONT_NAME EurostileBold31
+
 
 class SolarPanel{
 public:
@@ -28,6 +32,8 @@ public:
 
     // Draw the solar panel on the display
     void drawOn(TFT_eSPI &tft);
+    // Force update the solar panel on the display. Redraws all elements regardless of state
+    void drawOnForce(TFT_eSPI &tft);
 
   private:
     struct SolarPanelState {
@@ -41,7 +47,7 @@ public:
 
     void _drawSun(TFT_eSPI &tft);
     void _blankSun(TFT_eSPI &tft);
-    void _drawBars(TFT_eSPI &tft);
+    void _drawBars(TFT_eSPI &tft, bool force_redraw);
 };
 
 #endif

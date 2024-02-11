@@ -1,7 +1,6 @@
 #include "servo_player.hpp"
 
 ServoPlayer::ServoPlayer() : _current_animation(nullptr) {
-    // Initialize the ServoPlayer here
 }
 
 ServoPlayer& ServoPlayer::getInstance() {
@@ -21,6 +20,7 @@ void ServoPlayer::stop() {
     if (_current_animation != nullptr) {
         _current_animation->stop();
     }
+    _current_animation = nullptr;
 }
 
 bool ServoPlayer::isPlaying() {

@@ -20,6 +20,7 @@
 class ServoKeyframe {
   public:
     ServoKeyframe(unsigned long duration_ms);
+    ServoKeyframe(const ServoKeyframe &keyframe);
     ~ServoKeyframe();
 
     void add_servo_angle(ServoMotor *servo, float angle, ramp_mode ramp_mode = QUADRATIC_INOUT);
@@ -33,16 +34,19 @@ class ServoKeyframe {
     void set_next(ServoKeyframe *next);
     void set_prev(ServoKeyframe *prev);
 
-    unsigned long get_duration_ms();
+    void set_duration(unsigned long duration_ms);
+    unsigned long get_duration();
 
     ServoKeyframe *get_next();
     ServoKeyframe *get_prev();
 
+    void print_servos() const;
+
   private:
     struct servo_node {
-        ServoMotor     *_servo;
-        float           _target_scalar;
-        ramp_mode       _ramp_mode;
+        ServoMotor *_servo;
+        float       _target_scalar;
+        ramp_mode   _ramp_mode;
         servo_node *_next;
     };
     unsigned long _duration_ms;
@@ -50,7 +54,7 @@ class ServoKeyframe {
     ServoKeyframe *_next;
     ServoKeyframe *_prev;
 
-    servo_node *_head;
+    servo_node *_servo_head;
 };
 
 #endif // SERVO_KEYFRAME_HPP

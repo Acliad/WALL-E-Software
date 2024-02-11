@@ -18,12 +18,8 @@
 
 #include "display_common.hpp"
 #include "solar_panel.hpp"
+#include "recording_panel.hpp"
 #include "animate_solar_panel.hpp"
-#include "EurostileBold31.h"
-
-/********** Font Defines **********/
-#define _DISPLAY_FONT_SIZE 4 // NOTE: This does not apply to smooth/TTFs like EurostileBold29
-#define _DISPLAY_FONT_NAME EurostileBold31
 
 /**
  * @brief Class for controlling the solar display on a WALL-E robot. This class is responsible for drawing the solar 
@@ -32,6 +28,14 @@
  */
 class Display {
 public:
+    enum class Mode {
+        SOLAR_PANEL,
+        RECORDER
+    };
+
+    SolarPanel solar_panel;
+    RecordingPanel recording_panel;
+    
     Display(TFT_eSPI& tft);
 
     /**
@@ -39,6 +43,20 @@ public:
      * 
      */
     void begin();
+
+    /**
+     * @brief Sets the mode of the display.
+     *
+     * @param mode The mode to set.
+     */
+    void setMode(Mode mode);
+
+    /**
+     * @brief Get the mode of the display.
+     *
+     * @return The mode of the display.
+     */
+    Mode getMode();
 
     /**
      * @brief Set the status of a bar
@@ -85,8 +103,9 @@ public:
 private:
 
     TFT_eSPI& tft;
-    SolarPanel solar_panel;
     AnimateSolarPanel animation;
+    Mode _mode;
+    bool _force_next_update;
 
     /**
      * @brief Initialize the display appearance by drawing the sun and SOLAR CHARGE LEVEL text

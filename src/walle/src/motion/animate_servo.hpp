@@ -29,6 +29,8 @@ class ServoAnimation {
 
     bool isPlaying();
 
+    void printDebugInfo();
+
   private:
     ServoKeyframe *_head;
     ServoKeyframe *_current_keyframe;

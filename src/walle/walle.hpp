@@ -5,13 +5,14 @@
 #include "src/controller/navigation_controller.hpp"
 #include "src/motion/drive_motor.hpp"
 #include "src/motion/servo_motor.hpp"
+#include "src/motion/animate_servo_recorder.hpp"
 #include "src/display/display.hpp"
 #include "src/button/button.hpp"
 #include "src/stats/stats.hpp"
 #include "src/motion/servo_player.hpp"
 #include "display_animations.hpp"
 #include "motion_animations.hpp"
-#include "contexts.hpp"
+#include "src/motion/servo_context.hpp"
 #include <Adafruit_PWMServoDriver.h>
 #include <Bluepad32.h>
 #include <DFMiniMp3.h>

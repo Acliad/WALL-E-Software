@@ -2,7 +2,7 @@
 
 
 Display::Display(TFT_eSPI& tft)
-    : tft(tft), solar_panel(), animation() {
+    : tft(tft), solar_panel(), recording_panel(), animation(), _mode(Mode::SOLAR_PANEL), _force_next_update(false) {
     }
 
 void Display::setBar(unsigned int index, bool on) {
@@ -16,7 +16,6 @@ void Display::begin() {
     this->tft.begin();
     // Make sure things are cleared
     this->tft.fillScreen(_DISPLAY_BACKGROUND_COLOR);
-    this->_draw_static_display_elements();
 }
 
 bool Display::isBarOn(unsigned int index) {
@@ -25,7 +24,23 @@ bool Display::isBarOn(unsigned int index) {
 
 void Display::update() {
     this->animation.update();
-    this->solar_panel.drawOn(this->tft);
+    switch (this->_mode) {
+    case Mode::SOLAR_PANEL:
+        if (this->_force_next_update) {
+            this->solar_panel.drawOnForce(this->tft);
+        } else {
+            this->solar_panel.drawOn(this->tft);
+        }
+        break;
+    case Mode::RECORDER:
+        if (this->_force_next_update) {
+            this->recording_panel.drawOnForce(this->tft);
+        } else {
+            this->recording_panel.drawOn(this->tft);
+        }
+        break;
+    }
+    this->_force_next_update = false;
 }
 
 void Display::setAnimation(AnimateSolarPanel animation) {
@@ -49,12 +64,14 @@ bool Display::isAnimationRunning() {
     return this->animation.isRunning();
 }
 
-// TODO: Move the solar specifc stuff to a solar display class (currently solar_panel)
-void Display::_draw_static_display_elements() {
-    // Draw the SOLAR CHARGE LEVEL text
-    this->tft.setTextSize(_DISPLAY_FONT_SIZE);
-    this->tft.setTextColor(_DISPLAY_COLOR, TFT_BLACK);
-    this->tft.loadFont(_DISPLAY_FONT_NAME);
-    this->tft.setTextDatum(TC_DATUM); // Set strings to draw from center
-    this->tft.drawString("SOLAR CHARGE LEVEL", _DISPLAY_WIDTH/2, _DISPLAY_MARGIN);
+
+void Display::setMode(Mode mode) {
+    this->_mode = mode;
+    // Blank the screen when switching modes
+    this->tft.fillScreen(_DISPLAY_BACKGROUND_COLOR);
+    this->_force_next_update = true;
+}
+
+Display::Mode Display::getMode() {
+    return this->_mode;
 }

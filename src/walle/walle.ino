@@ -80,6 +80,8 @@ ServoMotor servo_wrist_right(&pca9685, SERVO_WRIST_RIGHT_IDX);
 ServoMotor servo_hand_left(&pca9685, SERVO_HAND_LEFT_IDX);
 ServoMotor servo_hand_right(&pca9685, SERVO_HAND_RIGHT_IDX);
 
+ServoContext servo_context;
+
 
 /*----------- Audio Player -------------------------------*/
 class Mp3Notify;
@@ -107,10 +109,17 @@ Button button_sun    = Button(BUTTON_PIN_SUN,    BUTTON_DEBOUNCE_TIME_MS);
 Button* buttons[] = {&button_record, &button_play, &button_stop, &button_sun};
 
 /*----------- General ------------------------------------*/
+enum class WallEState {
+    NORMAL,
+    RECORDING,
+};
+WallEState state = WallEState::NORMAL;
+ServoAnimationRecorder* servo_recorder = nullptr;
 Stats loop_stats = Stats(0.99);
 ServoAnimation* head_animations[] = {&MotionAnimations::cock_left, &MotionAnimations::wiggle_eyes, &MotionAnimations::sad,
                                    &MotionAnimations::curious_track};
 ServoPlayer& servo_player = ServoPlayer::getInstance();
+
 
 /**************************************************************
  *                    Function Prototypes                     *
@@ -131,6 +140,7 @@ void setup() {
 
     /*----------- Display --------------------------------*/
     display.begin();
+    display.update(); // Update to draw the static text before animation starts
     DisplayAnimations::setup_animations();
 
     // Start the startup animation
@@ -158,7 +168,6 @@ void setup() {
 
     /*----------- Servo Motors ---------------------------*/
     initServos();
-    ServoContext servo_context;
     servo_context.servo_neck_yaw = &servo_neck_yaw;
     servo_context.servo_neck_pitch = &servo_neck_pitch;
     servo_context.servo_eye_left = &servo_eye_left;
@@ -222,47 +231,8 @@ void loop() {
         last_update_time = millis();
 
         // Serial.println("--------------------------------------------------");
-        // Serial.print("Raw thumbstick X: ");
-        // Serial.println(drive_controller.thumbstickX());
-        // Serial.print("Raw thumbstick Y: ");
-        // Serial.println(drive_controller.thumbstickY());
-        // Serial.print("Neck Yaw: ");
-        // Serial.println(neck_yaw_position);
-        // Serial.print("Avg Loop Time: ");
-        // Serial.println(loop_stats.average());
-        // Serial.print("Max Loop Time: ");
-        // Serial.println(loop_stats.max());
-        // Serial.print("Min Loop Time: ");
-        // Serial.println(loop_stats.min());
-        // Serial.print("Aux Controller Up: ");
-        // Serial.println(aux_controller.upIsPressed());
-        // Serial.print("Play Button State: ");
-        // Serial.println(button_play.isPressed());
-        // Serial.print("Time in State: ");
-        // Serial.println(button_play.timeInState());
-        // Serial.print("Stop Button State: ");
-        // Serial.println(button_stop.isPressed());
-        // Serial.print("Time in State: ");
-        // Serial.println(button_stop.timeInState());
-        // Serial.print("Record Button State: ");
-        // Serial.println(button_record.isPressed());
-        // Serial.print("Time in State: ");
-        // Serial.println(button_record.timeInState());
-        // Serial.print("Sun Button State: ");
-        // Serial.println(button_sun.isPressed());
-        // Serial.print("Time in State: ");
-        // Serial.println(button_sun.timeInState());
-
-        // Serial.print("left_motor_speed = ");
-        // Serial.println(motor_l.get_current_speed());
-        // Serial.print("right_motor_speed = ");
-        // Serial.println(motor_r.get_current_speed());
-        // Serial.print("motor_acceleration = ");
-        // Serial.println(motor_acceleration);
-        // Serial.print("motor_speed_factor = ");
-        // Serial.println(motor_speed_factor);
-        // Serial.print("calcul rmotor_us = ");
-        // Serial.println(rmotor_us);
+        // Serial.print("Free heap bytes: ");
+        // Serial.println(ESP.getFreeHeap());
         // Serial.println("--------------------------------------------------");
 
     }
@@ -679,29 +649,29 @@ void mapInputs(float dt) {
     /*----------- Motor Speed ----------------------------*/
     mapThumbstick(drive_controller.thumbstickX(), -drive_controller.thumbstickY(), &left_motor_speed,
                   &right_motor_speed);
+    if (state == WallEState::NORMAL) {
+        if (drive_controller.xWasPressed()) {
+            track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES));
+            float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
+            float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
 
-    if (drive_controller.xWasPressed()) {
-        track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES));
-        float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
-        float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
+            motor_r.set_speed_limit(motor_speed_factor);
+            motor_l.set_speed_limit(motor_speed_factor);
+            motor_r.set_acceleration(motor_acceleration);
+            motor_l.set_acceleration(motor_acceleration);
+        }
 
-        motor_r.set_speed_limit(motor_speed_factor);
-        motor_l.set_speed_limit(motor_speed_factor);
-        motor_r.set_acceleration(motor_acceleration);
-        motor_l.set_acceleration(motor_acceleration);
+        if (drive_controller.circleWasPressed()) {
+            track_velocity_profile_idx = max((track_velocity_profile_idx - 1), 0);
+            float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
+            float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
+
+            motor_r.set_speed_limit(motor_speed_factor);
+            motor_l.set_speed_limit(motor_speed_factor);
+            motor_r.set_acceleration(motor_acceleration);
+            motor_l.set_acceleration(motor_acceleration);
+        }
     }
-
-    if (drive_controller.circleWasPressed()) {
-        track_velocity_profile_idx = max((track_velocity_profile_idx - 1), 0);
-        float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
-        float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
-
-        motor_r.set_speed_limit(motor_speed_factor);
-        motor_l.set_speed_limit(motor_speed_factor);
-        motor_r.set_acceleration(motor_acceleration);
-        motor_l.set_acceleration(motor_acceleration);
-    }
-
     /*----------- Head Movement --------------------------*/
     if (!(aux_controller.l2IsPressed() || drive_controller.l2IsPressed() || drive_controller.l1IsPressed())) {
         // If not relavent modifier is pressed...
@@ -747,17 +717,19 @@ void mapInputs(float dt) {
     }
 
     /*----------- Animations -----------------------------*/
-    if (drive_controller.upWasPressed()) {
-        servo_player.play(head_animations[0]);
-    } else if (drive_controller.rightWasPressed()) {
-        servo_player.play(head_animations[1]);
-    } else if (drive_controller.downWasPressed()) {
-        servo_player.play(head_animations[2]);
-    } else if (drive_controller.leftWasPressed()) {
-        servo_player.play(head_animations[3]);
-    }
-    if (drive_controller.thumbstickWasPressed()) {
-        servo_player.stop();
+    if (state == WallEState::NORMAL) {
+        if (drive_controller.upWasPressed()) {
+            servo_player.play(head_animations[0]);
+        } else if (drive_controller.rightWasPressed()) {
+            servo_player.play(head_animations[1]);
+        } else if (drive_controller.downWasPressed()) {
+            servo_player.play(head_animations[2]);
+        } else if (drive_controller.leftWasPressed()) {
+            servo_player.play(head_animations[3]);
+        }
+        if (drive_controller.thumbstickWasPressed()) {
+            servo_player.stop();
+        }
     }
 
     /*----------- Sounds ---------------------------------*/
@@ -780,6 +752,47 @@ void mapInputs(float dt) {
     }
 
     /*----------- Buttons --------------------------------*/
-    // TODO
+    if (button_record.wasPressed() && state == WallEState::NORMAL) {
+        state = WallEState::RECORDING;
+        servo_recorder = new ServoAnimationRecorder(display, servo_context);
+    }
 
+
+    /*----------- Recording Mode Inputs ------------------*/
+    if (state == WallEState::RECORDING) {
+        ServoAnimationRecorder::States recorder_state = servo_recorder->getState();
+        if (button_stop.wasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::CANCEL);
+        } else if (button_play.wasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DONE);
+        } else if (drive_controller.upWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::UP);
+        } else if (drive_controller.rightWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::RIGHT);
+        } else if (drive_controller.downWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DOWN);
+        } else if (drive_controller.leftWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::LEFT);
+        } else if (drive_controller.xWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::PREV);
+        } else if (drive_controller.circleWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::NEXT);
+        } else if (aux_controller.xWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::CANCEL);
+        } else if (aux_controller.circleWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DONE);
+        // DEBUG >>>>>>>>>>>>>>>>>>>
+        } else if (button_sun.wasPressed()) { // TODO: Remove me when done debugging
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::UP);
+        }
+        // DEBUG <<<<<<<<<<<<<<<<<<<<
+
+        if (recorder_state == ServoAnimationRecorder::States::DONE) {
+            std::unique_ptr<ServoAnimation> animation = servo_recorder->takeAnimation();
+            head_animations[0] = animation.release();
+            state = WallEState::NORMAL;
+            delete servo_recorder;
+            servo_recorder = nullptr;
+        }
+    }
 }
