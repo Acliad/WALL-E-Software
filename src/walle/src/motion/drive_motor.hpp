@@ -19,6 +19,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Arduino.h>
 
+// TODO: Conver this to inherit from Motor
 class DriveMotor {
   public:
     // NOTE: Neutral is assumed to be the center of min_us and max_us. Motor is set to neutral on construction. Does not

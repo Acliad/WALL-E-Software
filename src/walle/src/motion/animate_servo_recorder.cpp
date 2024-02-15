@@ -93,12 +93,10 @@ std::unique_ptr<ServoAnimation> ServoAnimationRecorder::takeAnimation() {
     return std::move(_animation);
 }
 
-void ServoAnimationRecorder::save(ServoAnimation &animation, const char *filename) {
-    // TODO: Implement
-}
-
-void ServoAnimationRecorder::load(ServoAnimation &animation, const char *filename) {
-    // TODO: Implement
+void ServoAnimationRecorder::addFunctionToKeyframe(std::function<void()> function) {
+    if (_current_keyframe != nullptr) {
+        _current_keyframe->add_function(function);
+    }
 }
 
 void ServoAnimationRecorder::_setupRecordingState() {

@@ -1,13 +1,13 @@
 #ifndef ANIMATE_SERVO_RECORDER_HPP
 #define ANIMATE_SERVO_RECORDER_HPP
 
+#include <cmath>
+#include <Arduino.h>
 #include "animate_servo.hpp"
 #include "servo_keyframe.hpp"
 #include "servo_context.hpp"
 #include "../display/display.hpp"
 #include "servo_player.hpp"
-#include <cmath>
-#include <Arduino.h>
 
 class ServoAnimationRecorder {
   public:
@@ -38,8 +38,7 @@ class ServoAnimationRecorder {
 
     std::unique_ptr<ServoAnimation> takeAnimation();
 
-    static void save(ServoAnimation& animation, const char* filename);
-    static void load(ServoAnimation& animation, const char* filename);
+    void addFunctionToKeyframe(std::function<void()> function);
 
   private:
     const unsigned int _DEFAULT_KEYFRAME_LENGTH_MS = 1500;

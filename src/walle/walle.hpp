@@ -17,6 +17,7 @@
 #include <Bluepad32.h>
 #include <DFMiniMp3.h>
 #include <Wire.h>
+#include <SPIFFS.h>
 
 /**************************************************************
  *                           Macros                           *
@@ -27,6 +28,5 @@
  *                          Defines                           *
  **************************************************************/
 #define PI_OVER_FOUR (PI / 4.0)
-
 
 #endif // WALLE_H

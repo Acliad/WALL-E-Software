@@ -1,7 +1,7 @@
 #include "motor.hpp"
 
-Motor::Motor(Adafruit_PWMServoDriver *pca9685, int pin, int neutral_us, int min_us, int max_us)
-    : _pwm_driver(pca9685), _pin(pin), _neutral_us(neutral_us), _min_us(min_us), _max_us(max_us) {
+Motor::Motor(Adafruit_PWMServoDriver *pca9685, int pin, std::string name, int neutral_us, int min_us, int max_us)
+    : _pwm_driver(pca9685), _pin(pin), _neutral_us(neutral_us), _min_us(min_us), _max_us(max_us), _name(name) {
     // Calculate the slope and intercept for the scalar to us mapping
     _scalar_plus_to_us_slope = (float)(_max_us - _neutral_us) / 1.0f;
     _scalar_minus_to_us_slope = (float)(_neutral_us - _min_us) / 1.0f;
@@ -54,6 +54,10 @@ int Motor::get_current_us() {
 
 float Motor::get_current_scalar() {
     return _us_to_scaler(_current_us);
+}
+
+std::string Motor::get_name() {
+    return _name;
 }
 
 int Motor::_scalar_to_us(float scalar) {

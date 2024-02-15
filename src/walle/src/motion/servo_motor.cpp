@@ -1,8 +1,8 @@
 #include "servo_motor.hpp"
 
-ServoMotor::ServoMotor(Adafruit_PWMServoDriver *pca9685, int pin, int neutral_us, int min_us, int max_us,
+ServoMotor::ServoMotor(Adafruit_PWMServoDriver *pca9685, int pin, std::string name, int neutral_us, int min_us, int max_us,
                        float min_angle_deg, float max_angle_deg, float neutral_angle_deg)
-    : Motor(pca9685, pin, neutral_us, min_us, max_us), _min_angle_deg(min_angle_deg), _max_angle_deg(max_angle_deg),
+    : Motor(pca9685, pin, name, neutral_us, min_us, max_us), _min_angle_deg(min_angle_deg), _max_angle_deg(max_angle_deg),
       _neutral_angle_deg(neutral_angle_deg) {
     // Calculate the slope and intercept for the angle to us mapping
     _angle_positive_to_us_slope = (float)(_max_us - _neutral_us) / (_max_angle_deg - _neutral_angle_deg);

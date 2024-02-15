@@ -28,6 +28,8 @@ const unsigned int BUTTON_PIN_PLAY   = 35;
 const unsigned int BUTTON_PIN_STOP   = 34;
 const unsigned int BUTTON_PIN_SUN    = 33;
 
+/*----------- Animations ---------------------------------*/
+const char* ANIMATION_FILE_FORMATTER = "/animation_%d.txt";
 
 /************************************************************** 
  *                         Variables                          *
@@ -56,10 +58,10 @@ float eye_left_position = 0.0f;
 float eye_right_position = 0.0f;
 
 // NOTE: Initializing with default parameters here, updated in initServos()
-ServoMotor servo_neck_yaw(&pca9685, SERVO_NECK_YAW_IDX);
-ServoMotor servo_neck_pitch(&pca9685, SERVO_NECK_PITCH_IDX);
-ServoMotor servo_eye_left(&pca9685, SERVO_EYE_LEFT_IDX);
-ServoMotor servo_eye_right(&pca9685, SERVO_EYE_RIGHT_IDX);
+ServoMotor servo_neck_yaw(&pca9685, SERVO_NECK_YAW_IDX, SERVO_NECK_YAW_NAME);
+ServoMotor servo_neck_pitch(&pca9685, SERVO_NECK_PITCH_IDX, SERVO_NECK_PITCH_NAME);
+ServoMotor servo_eye_left(&pca9685, SERVO_EYE_LEFT_IDX, SERVO_EYE_LEFT_NAME);
+ServoMotor servo_eye_right(&pca9685, SERVO_EYE_RIGHT_IDX, SERVO_EYE_RIGHT_NAME);
 
 /*----------- Arm Servos ---------------------------------*/
 float shoulder_left_position = 0.0f;
@@ -71,14 +73,14 @@ float wrist_right_position = 0.0f;
 float hand_left_position = 0.0f;
 float hand_right_position = 0.0f;
 
-ServoMotor servo_shoulder_left(&pca9685, SERVO_SHOULDER_LEFT_IDX);
-ServoMotor servo_shoulder_right(&pca9685, SERVO_SHOULDER_RIGHT_IDX);
-ServoMotor servo_elbow_left(&pca9685, SERVO_ELBOW_LEFT_IDX);
-ServoMotor servo_elbow_right(&pca9685, SERVO_ELBOW_RIGHT_IDX);
-ServoMotor servo_wrist_left(&pca9685, SERVO_WRIST_LEFT_IDX);
-ServoMotor servo_wrist_right(&pca9685, SERVO_WRIST_RIGHT_IDX);
-ServoMotor servo_hand_left(&pca9685, SERVO_HAND_LEFT_IDX);
-ServoMotor servo_hand_right(&pca9685, SERVO_HAND_RIGHT_IDX);
+ServoMotor servo_shoulder_left(&pca9685, SERVO_SHOULDER_LEFT_IDX, SERVO_SHOULDER_LEFT_NAME);
+ServoMotor servo_shoulder_right(&pca9685, SERVO_SHOULDER_RIGHT_IDX, SERVO_SHOULDER_RIGHT_NAME);
+ServoMotor servo_elbow_left(&pca9685, SERVO_ELBOW_LEFT_IDX, SERVO_ELBOW_LEFT_NAME);
+ServoMotor servo_elbow_right(&pca9685, SERVO_ELBOW_RIGHT_IDX, SERVO_ELBOW_RIGHT_NAME);
+ServoMotor servo_wrist_left(&pca9685, SERVO_WRIST_LEFT_IDX, SERVO_WRIST_LEFT_NAME);
+ServoMotor servo_wrist_right(&pca9685, SERVO_WRIST_RIGHT_IDX, SERVO_WRIST_RIGHT_NAME);
+ServoMotor servo_hand_left(&pca9685, SERVO_HAND_LEFT_IDX, SERVO_HAND_LEFT_NAME);
+ServoMotor servo_hand_right(&pca9685, SERVO_HAND_RIGHT_IDX, SERVO_HAND_RIGHT_NAME);
 
 ServoContext servo_context;
 
@@ -137,6 +139,15 @@ void updateAll();
 
 void setup() {
     Serial.begin(115200);
+
+    /*----------- SPIFFS ---------------------------------*/
+    Serial.println("Initializing SPIFFS...");
+    if (!SPIFFS.begin(true)) {
+        Serial.println("************> Initialization failed...");
+    } else {
+        Serial.println("SPIFFS initialized successfully");
+    }
+    
 
     /*----------- Display --------------------------------*/
     display.begin();
@@ -197,9 +208,7 @@ void setup() {
     drive_controller.setDeadzone(CONTROLLER_DEADZONE);
     aux_controller.setDeadzone(CONTROLLER_DEADZONE);
 
-/***************************************************************
- *                     DFMini Audio Driver                      *
- ***************************************************************/
+    /*----------- Audio Player ---------------------------*/
 #ifdef ENABLE_AUDIO
     dfmp3.begin();
     dfmp3.reset(); // Could cause popping; can be removed after development.
@@ -209,6 +218,12 @@ void setup() {
         dfmp3.playMp3FolderTrack(TRACK_INDEX_STARTUP);
     }
 #endif
+
+    if (MotionAnimations::cock_left.save(SPIFFS, "/animation_1.txt")) {
+        Serial.println("Write successed, loading animation...");
+        std::unique_ptr<ServoAnimation> cock_left_loaded = ServoAnimation::load(SPIFFS, "/animation_0.txt", servo_context);
+        head_animations[1] = cock_left_loaded.release();
+    }
 }
 
 void loop() {
@@ -769,36 +784,60 @@ void mapInputs(float dt) {
 
     /*----------- Recording Mode Inputs ------------------*/
     if (state == WallEState::RECORDING) {
+        static int save_to_button_index = 0;
         ServoAnimationRecorder::States recorder_state = servo_recorder->getState();
-        if (button_stop.wasPressed()) {
+        if (button_stop.wasPressed() || aux_controller.xWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::CANCEL);
-        } else if (button_play.wasPressed()) {
+        } else if (button_play.wasPressed() || aux_controller.circleWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DONE);
         } else if (drive_controller.upWasPressed()) {
+            if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
+                save_to_button_index = 0;
+            }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::UP);
         } else if (drive_controller.rightWasPressed()) {
+            if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
+                save_to_button_index = 1;
+            }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::RIGHT);
         } else if (drive_controller.downWasPressed()) {
+            if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
+                save_to_button_index = 2;
+            }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DOWN);
         } else if (drive_controller.leftWasPressed()) {
+            if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
+                save_to_button_index = 3;
+            }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::LEFT);
         } else if (drive_controller.xWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::PREV);
         } else if (drive_controller.circleWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::NEXT);
-        } else if (aux_controller.xWasPressed()) {
-            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::CANCEL);
-        } else if (aux_controller.circleWasPressed()) {
-            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DONE);
+        } else if (aux_controller.upWasReleased()) {
+            auto sound0_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[0]); };
+            servo_recorder->addFunctionToKeyframe(sound0_func);
+        } else if (aux_controller.rightWasReleased()) {
+            auto sound1_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[1]); };
+            servo_recorder->addFunctionToKeyframe(sound1_func);
+        } else if (aux_controller.downWasReleased()) {
+            auto sound2_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[2]); };
+            servo_recorder->addFunctionToKeyframe(sound2_func);
+        } else if (aux_controller.leftWasReleased()) {
+            auto sound3_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[3]); };
+            servo_recorder->addFunctionToKeyframe(sound3_func);
+        } else if (aux_controller.thumbstickWasPressed()) {
+            servo_recorder->addFunctionToKeyframe(nullptr);
+        }
         // DEBUG >>>>>>>>>>>>>>>>>>>
-        } else if (button_sun.wasPressed()) { // TODO: Remove me when done debugging
+        else if (button_sun.wasPressed()) { // TODO: Remove me when done debugging
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::UP);
         }
         // DEBUG <<<<<<<<<<<<<<<<<<<<
 
         if (recorder_state == ServoAnimationRecorder::States::DONE) {
             std::unique_ptr<ServoAnimation> animation = servo_recorder->takeAnimation();
-            head_animations[0] = animation.release();
+            head_animations[save_to_button_index] = animation.release();
             state = WallEState::NORMAL;
             delete servo_recorder;
             servo_recorder = nullptr;

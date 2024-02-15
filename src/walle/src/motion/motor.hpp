@@ -22,7 +22,8 @@ class Motor {
     // NOTE: Neutral is assumed to be the center of min_us and max_us. Motor is set to neutral on construction (but
     // won't be updated until update() is called). Does not call Adafruit_PWMServoDriver's begin() for you, please begin
     // before using. This is to allow for multiple motors to be controlled by the same PCA9685.
-    Motor(Adafruit_PWMServoDriver *pca9685, int pin, int neutral_us = 1500, int min_us = 500, int max_us = 2500);
+    Motor(Adafruit_PWMServoDriver *pca9685, int pin, std::string name, int neutral_us = 1500, int min_us = 500,
+          int max_us = 2500);
 
     virtual void update();
 
@@ -38,6 +39,7 @@ class Motor {
 
     int   get_current_us();
     float get_current_scalar();
+    std::string get_name();
 
   protected:
     Adafruit_PWMServoDriver *_pwm_driver;
@@ -50,6 +52,7 @@ class Motor {
     float         _scalar_minus_to_us_slope;
     int           _current_us;
     unsigned long _last_update_ms;
+    std::string   _name;
     // Helper functions for converting between us and speed
 
     int   _scalar_to_us(float speed);

@@ -104,3 +104,60 @@ void ServoAnimation::printDebugInfo() {
         }
     }
 }
+
+bool ServoAnimation::save(fs::FS &filesystem, const char *filename) {
+    File animation_file = filesystem.open(filename, FILE_WRITE);
+    if (!animation_file) {
+        Serial.println("Failed to open file for writing");
+        return false;
+    }
+
+    // Loop through the keyframes and write each one to the file
+    ServoKeyframe *current = _head;
+    while (current != nullptr) {
+        bool success = true;
+        success &= 0 < animation_file.println("start keyframe");
+        success &= 0 < animation_file.println(current->serialize().c_str());
+        success &= 0 < animation_file.println("end keyframe");
+        if (!success) {
+            Serial.println("Write failed");
+            animation_file.close();
+            return false;
+        }
+        current = current->get_next();
+    }
+
+    animation_file.close();
+    return true;
+}
+
+std::unique_ptr<ServoAnimation> ServoAnimation::load(fs::FS &filesystem, const char* filename, ServoContext& servo_context) {
+    File animation_file = filesystem.open(filename, FILE_READ);
+    if (!animation_file) {
+        Serial.println("Failed to open file for reading");
+        return nullptr;
+    }
+
+    // Read the keyframes from the file and create a new animation from the data
+    std::unique_ptr<ServoAnimation> animation(new ServoAnimation());
+    String                          keyframe_str;
+    while (animation_file.available()) {
+        String line = animation_file.readStringUntil('\n');
+        // DEBUG >>>>>>>>>>>>>>>>>>>
+        Serial.println(line);
+        // DEBUG <<<<<<<<<<<<<<<<<<<<
+        if (line.indexOf("start keyframe") > -1) {
+            keyframe_str = "";
+        } else if (line.indexOf("end keyframe") > -1) {
+            ServoKeyframe *keyframe = ServoKeyframe::deserialize(keyframe_str.c_str(), servo_context);
+            if (keyframe != nullptr) {
+                animation->add_keyframe(keyframe);
+            }
+        } else {
+            keyframe_str += line;
+        }
+    }
+
+    animation_file.close();
+    return animation;
+}

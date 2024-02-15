@@ -22,7 +22,7 @@ class ServoMotor : public Motor {
     // NOTE: Motor is set to neutral on construction. Does not call Adafruit_PWMServoDriver's begin() for you, please
     // begin before using. This is to allow for multiple motors to be controlled by the same PCA9685.
   public:
-    ServoMotor(Adafruit_PWMServoDriver *pca9685, int pin, int neutral_us = 1500, int min_us = 500, int max_us = 2500,
+    ServoMotor(Adafruit_PWMServoDriver *pca9685, int pin, std::string name, int neutral_us = 1500, int min_us = 500, int max_us = 2500,
                float min_angle_deg = -90, float max_angle_deg = 90, float neutral_angle_deg = 0);
 
     // Set the angle in degrees from -90 to 90

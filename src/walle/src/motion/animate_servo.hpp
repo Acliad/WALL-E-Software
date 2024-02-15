@@ -13,9 +13,15 @@
 #ifndef ANIMATE_SERVO_HPP
 #define ANIMATE_SERVO_HPP
 
-#include "servo_keyframe.hpp"
+#include <FS.h>
+#include <SPIFFS.h>
 #include <Arduino.h>
 #include <Ramp.h>
+#include <sstream>
+#include <string>
+#include <iostream>
+#include "servo_keyframe.hpp"
+#include "servo_context.hpp"
 
 class ServoAnimation {
   public:
@@ -29,6 +35,9 @@ class ServoAnimation {
 
     bool isPlaying();
 
+    bool save(fs::FS &filesystem, const char* filename);
+    static std::unique_ptr<ServoAnimation> load(fs::FS &filesystem, const char* filename, ServoContext& servo_context);
+
     void printDebugInfo();
 
   private:
@@ -37,6 +46,8 @@ class ServoAnimation {
     unsigned long _frame_start_time_ms;
     bool          _playing;
     bool          _keyframe_has_started;
+
+    static ServoKeyframe* _deserialize_keyframe(std::string keyframe_string, ServoContext& servo_context);
 };
 
 #endif // ANIMATE_SERVO_HPP
