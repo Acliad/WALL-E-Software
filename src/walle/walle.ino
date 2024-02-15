@@ -219,11 +219,15 @@ void setup() {
     }
 #endif
 
-    if (MotionAnimations::cock_left.save(SPIFFS, "/animation_1.txt")) {
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    Serial.println(ESP.getFreeHeap());
+    if (MotionAnimations::cock_left.save(SPIFFS, "/animation_0.txt")) {
         Serial.println("Write successed, loading animation...");
+        Serial.println(ESP.getFreeHeap());
         std::unique_ptr<ServoAnimation> cock_left_loaded = ServoAnimation::load(SPIFFS, "/animation_0.txt", servo_context);
         head_animations[1] = cock_left_loaded.release();
     }
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
 }
 
 void loop() {

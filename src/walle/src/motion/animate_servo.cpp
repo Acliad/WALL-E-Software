@@ -114,21 +114,20 @@ bool ServoAnimation::save(fs::FS &filesystem, const char *filename) {
 
     // Loop through the keyframes and write each one to the file
     ServoKeyframe *current = _head;
+    bool success = true;
     while (current != nullptr) {
-        bool success = true;
-        success &= 0 < animation_file.println("start keyframe");
+        success &= 0 < animation_file.println(_SERIALIZED_KEYFRAME_START);
         success &= 0 < animation_file.println(current->serialize().c_str());
-        success &= 0 < animation_file.println("end keyframe");
+        success &= 0 < animation_file.println(_SERIALIZED_KEYFRAME_END);
         if (!success) {
             Serial.println("Write failed");
-            animation_file.close();
-            return false;
+            break;
         }
         current = current->get_next();
     }
 
     animation_file.close();
-    return true;
+    return success;
 }
 
 std::unique_ptr<ServoAnimation> ServoAnimation::load(fs::FS &filesystem, const char* filename, ServoContext& servo_context) {
@@ -143,18 +142,15 @@ std::unique_ptr<ServoAnimation> ServoAnimation::load(fs::FS &filesystem, const c
     String                          keyframe_str;
     while (animation_file.available()) {
         String line = animation_file.readStringUntil('\n');
-        // DEBUG >>>>>>>>>>>>>>>>>>>
-        Serial.println(line);
-        // DEBUG <<<<<<<<<<<<<<<<<<<<
-        if (line.indexOf("start keyframe") > -1) {
-            keyframe_str = "";
-        } else if (line.indexOf("end keyframe") > -1) {
+        if (line.indexOf(_SERIALIZED_KEYFRAME_START) > -1) {
+            keyframe_str.clear();
+        } else if (line.indexOf(_SERIALIZED_KEYFRAME_END) > -1) {
             ServoKeyframe *keyframe = ServoKeyframe::deserialize(keyframe_str.c_str(), servo_context);
             if (keyframe != nullptr) {
                 animation->add_keyframe(keyframe);
             }
         } else {
-            keyframe_str += line;
+            keyframe_str += line + "\n";
         }
     }
 

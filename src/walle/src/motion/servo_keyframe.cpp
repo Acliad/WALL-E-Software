@@ -134,6 +134,8 @@ ServoKeyframe *ServoKeyframe::get_prev() {
 }
 
 std::string ServoKeyframe::serialize() const {
+    // NOTE: This could be memory inefficent because it's creating a potentially large string in memory instead of 
+    // writing directly to SPIFFS. If this becomes a problem, we can change this to write directly to SPIFFS.
     std::string output_str;
     output_str += "duration_ms: " + std::to_string(_duration_ms) + "\n";
     // TODO: Serialize the function

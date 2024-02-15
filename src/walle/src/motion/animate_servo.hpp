@@ -47,7 +47,8 @@ class ServoAnimation {
     bool          _playing;
     bool          _keyframe_has_started;
 
-    static ServoKeyframe* _deserialize_keyframe(std::string keyframe_string, ServoContext& servo_context);
+    static constexpr char* const _SERIALIZED_KEYFRAME_START = "start keyframe";
+    static constexpr char* const _SERIALIZED_KEYFRAME_END = "end keyframe";
 };
 
 #endif // ANIMATE_SERVO_HPP
