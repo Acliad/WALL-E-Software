@@ -30,6 +30,7 @@ const unsigned int BUTTON_PIN_SUN    = 33;
 
 /*----------- Animations ---------------------------------*/
 const char* ANIMATION_FILE_FORMATTER = "/animation_%d.txt";
+const int ANIMATION_FILE_STRING_BUFFER_SIZE = 30;
 
 /************************************************************** 
  *                         Variables                          *
@@ -86,11 +87,6 @@ ServoContext servo_context;
 
 
 /*----------- Audio Player -------------------------------*/
-class Mp3Notify;
-// Handy typedef using serial and our notify class
-typedef DFMiniMp3<HardwareSerial, Mp3Notify> DfMp3;
-
-DfMp3_Status dfmp3_status;
 unsigned int audio_current_track = 0;
 unsigned int audio_num_tracks = 1;
 DfMp3 dfmp3 = DfMp3(Serial2);
@@ -140,13 +136,6 @@ void updateAll();
 void setup() {
     Serial.begin(115200);
 
-    /*----------- SPIFFS ---------------------------------*/
-    Serial.println("Initializing SPIFFS...");
-    if (!SPIFFS.begin(true)) {
-        Serial.println("************> Initialization failed...");
-    } else {
-        Serial.println("SPIFFS initialized successfully");
-    }
     
 
     /*----------- Display --------------------------------*/
@@ -219,15 +208,27 @@ void setup() {
     }
 #endif
 
-    // DEBUG >>>>>>>>>>>>>>>>>>>
-    Serial.println(ESP.getFreeHeap());
-    if (MotionAnimations::cock_left.save(SPIFFS, "/animation_0.txt")) {
-        Serial.println("Write successed, loading animation...");
-        Serial.println(ESP.getFreeHeap());
-        std::unique_ptr<ServoAnimation> cock_left_loaded = ServoAnimation::load(SPIFFS, "/animation_0.txt", servo_context);
-        head_animations[1] = cock_left_loaded.release();
+    /*----------- SPIFFS ---------------------------------*/
+    Serial.println("Initializing SPIFFS...");
+    if (!SPIFFS.begin(true)) {
+        Serial.println("************> Initialization failed...");
+    } else {
+        // Load saved animations from SPIFFS
+        for (int i = 0; i < (sizeof(head_animations)/sizeof(head_animations[0])); i ++) {
+            // Check if a file exists for this slot
+            char file_name_buff[ANIMATION_FILE_STRING_BUFFER_SIZE];
+            sprintf(file_name_buff, ANIMATION_FILE_FORMATTER, i);
+
+            if (SPIFFS.exists(file_name_buff)) {
+                // Load the animation and store it in the array
+                std::unique_ptr<ServoAnimation> loaded = ServoAnimation::load(SPIFFS, file_name_buff, servo_context);
+                head_animations[i] = loaded.release();
+            }
+        }
     }
-    // DEBUG <<<<<<<<<<<<<<<<<<<<
+
+    /*----------------------------------------------------*/
+    Serial.println("Initialization complete!");
 }
 
 void loop() {
@@ -412,86 +413,6 @@ void mapThumbstick(int thumbstick_x, int thumbstick_y, float *left_motor_speed, 
     *right_motor_speed = rmotor_thrust;
     *left_motor_speed = lmotor_thrust;
 }
-
-/**
- * @brief The Mp3Notify class provides static methods for handling MP3 player events.
- */
-class Mp3Notify {
-  public:
-    /**
-     * @brief Prints the source and action of the MP3 player event.
-     * 
-     * @param source The play source(s) of the MP3 player event.
-     * @param action The action performed by the MP3 player event.
-     */
-    static void PrintlnSourceAction(DfMp3_PlaySources source, const char *action) {
-        if (source & DfMp3_PlaySources_Sd) {
-            Serial.print("SD Card, ");
-        }
-        if (source & DfMp3_PlaySources_Usb) {
-            Serial.print("USB Disk, ");
-        }
-        if (source & DfMp3_PlaySources_Flash) {
-            Serial.print("Flash, ");
-        }
-        Serial.println(action);
-    }
-
-    /**
-     * @brief Handles the error event of the MP3 player.
-     * 
-     * @param mp3 The MP3 player instance.
-     * @param errorCode The error code indicating the type of error.
-     */
-    static void OnError([[maybe_unused]] DfMp3 &mp3, uint16_t errorCode) {
-        // see DfMp3_Error for code meaning
-        Serial.println();
-        Serial.print("Com Error ");
-        Serial.println(errorCode);
-    }
-
-    /**
-     * @brief Handles the play finished event of the MP3 player.
-     * 
-     * @param mp3 The MP3 player instance.
-     * @param source The play source(s) of the MP3 player event.
-     * @param track The track number that finished playing.
-     */
-    static void OnPlayFinished([[maybe_unused]] DfMp3 &mp3, [[maybe_unused]] DfMp3_PlaySources source, uint16_t track) {
-        Serial.print("Play finished for #");
-        Serial.println(track);
-    }
-
-    /**
-     * @brief Handles the play source online event of the MP3 player.
-     * 
-     * @param mp3 The MP3 player instance.
-     * @param source The play source(s) of the MP3 player event.
-     */
-    static void OnPlaySourceOnline([[maybe_unused]] DfMp3 &mp3, DfMp3_PlaySources source) {
-        PrintlnSourceAction(source, "online");
-    }
-
-    /**
-     * @brief Handles the play source inserted event of the MP3 player.
-     * 
-     * @param mp3 The MP3 player instance.
-     * @param source The play source(s) of the MP3 player event.
-     */
-    static void OnPlaySourceInserted([[maybe_unused]] DfMp3 &mp3, DfMp3_PlaySources source) {
-        PrintlnSourceAction(source, "inserted");
-    }
-
-    /**
-     * @brief Handles the play source removed event of the MP3 player.
-     * 
-     * @param mp3 The MP3 player instance.
-     * @param source The play source(s) of the MP3 player event.
-     */
-    static void OnPlaySourceRemoved([[maybe_unused]] DfMp3 &mp3, DfMp3_PlaySources source) {
-        PrintlnSourceAction(source, "removed");
-    }
-};
 
 /**
  * Callback function called when a gamepad is connected.
@@ -819,19 +740,15 @@ void mapInputs(float dt) {
         } else if (drive_controller.circleWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::NEXT);
         } else if (aux_controller.upWasReleased()) {
-            auto sound0_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[0]); };
-            servo_recorder->addFunctionToKeyframe(sound0_func);
+            servo_recorder->addTrackToKeyframe(audio_track_selection_list[0], &dfmp3);
         } else if (aux_controller.rightWasReleased()) {
-            auto sound1_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[1]); };
-            servo_recorder->addFunctionToKeyframe(sound1_func);
+            servo_recorder->addTrackToKeyframe(audio_track_selection_list[1], &dfmp3);
         } else if (aux_controller.downWasReleased()) {
-            auto sound2_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[2]); };
-            servo_recorder->addFunctionToKeyframe(sound2_func);
+            servo_recorder->addTrackToKeyframe(audio_track_selection_list[2], &dfmp3);
         } else if (aux_controller.leftWasReleased()) {
-            auto sound3_func = []() -> void { dfmp3.playMp3FolderTrack(audio_track_selection_list[3]); };
-            servo_recorder->addFunctionToKeyframe(sound3_func);
+            servo_recorder->addTrackToKeyframe(audio_track_selection_list[3], &dfmp3);
         } else if (aux_controller.thumbstickWasPressed()) {
-            servo_recorder->addFunctionToKeyframe(nullptr);
+            servo_recorder->addTrackToKeyframe(0, nullptr);
         }
         // DEBUG >>>>>>>>>>>>>>>>>>>
         else if (button_sun.wasPressed()) { // TODO: Remove me when done debugging
@@ -841,7 +758,17 @@ void mapInputs(float dt) {
 
         if (recorder_state == ServoAnimationRecorder::States::DONE) {
             std::unique_ptr<ServoAnimation> animation = servo_recorder->takeAnimation();
-            head_animations[save_to_button_index] = animation.release();
+            if (animation != nullptr) {
+                // Save the new animation to SPIFFS
+                char file_name_buff[ANIMATION_FILE_STRING_BUFFER_SIZE];
+                sprintf(file_name_buff, ANIMATION_FILE_FORMATTER, save_to_button_index);
+                animation->save(SPIFFS, file_name_buff);
+                // Delete the old animation and store the new one
+                if (head_animations[save_to_button_index] != nullptr) {
+                    delete head_animations[save_to_button_index];
+                }
+                head_animations[save_to_button_index] = animation.release();
+            }
             state = WallEState::NORMAL;
             delete servo_recorder;
             servo_recorder = nullptr;

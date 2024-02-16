@@ -1,16 +1,16 @@
 #include "servo_keyframe.hpp"
 
 ServoKeyframe::ServoKeyframe(unsigned long duration_ms)
-    : _next(nullptr), _prev(nullptr), _servo_head(nullptr), _duration_ms(duration_ms), _function(nullptr),
-      _function_has_fired(false) {
+    : _next(nullptr), _prev(nullptr), _servo_head(nullptr), _duration_ms(duration_ms), _track_index(-1),
+      _track_has_played(false), _dfmp3(nullptr) {
 }
 
 ServoKeyframe::ServoKeyframe(const ServoKeyframe &keyframe) {
     _next = nullptr;
     _prev = nullptr;
     _servo_head = nullptr;
-    _function = nullptr;
-    _function_has_fired = false;
+    _track_index = -1;
+    _track_has_played = false;
 
     // Copy the duration
     _duration_ms = keyframe._duration_ms;
@@ -75,12 +75,13 @@ void ServoKeyframe::add_servo_scalar(ServoMotor *servo, float scalar, ramp_mode 
     }
 }
 
-void ServoKeyframe::add_function(std::function<void()> function) {
-    _function = function;
+void ServoKeyframe::add_track(int track_index, DfMp3 *dfmp3) {
+    _track_index = track_index;
+    _dfmp3 = dfmp3;
 }
 
 void ServoKeyframe::start_keyframe() {
-    _function_has_fired = false;
+    _track_has_played = false;
     // Iterate through the keyframe's servo keyframes and start them
     servo_node *current = _servo_head;
     while (current != nullptr) {
@@ -95,9 +96,9 @@ void ServoKeyframe::start_keyframe() {
 
 void ServoKeyframe::update_keyframe() {
     // Check if the function has fired, if not, fire it
-    if (_function != nullptr && !_function_has_fired) {
-        _function();
-        _function_has_fired = true;
+    if (_dfmp3 != nullptr && !_track_has_played) {
+        _dfmp3->playMp3FolderTrack(_track_index);
+        _track_has_played = true;
     }
     // Iterate through the keyframe's servo keyframes and update them
     servo_node *current = _servo_head;

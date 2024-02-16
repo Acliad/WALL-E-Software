@@ -20,6 +20,7 @@
 #include <Ramp.h>
 #include "servo_motor.hpp"
 #include "servo_context.hpp"
+#include "../audio/audio_player.h"
 
 class ServoKeyframe {
   public:
@@ -30,8 +31,8 @@ class ServoKeyframe {
     void add_servo_angle(ServoMotor *servo, float angle, ramp_mode ramp_mode = QUADRATIC_INOUT);
     void add_servo_scalar(ServoMotor *servo, float scalar, ramp_mode ramp_mode = QUADRATIC_INOUT);
 
-    // Given function fires on the first call to update_keyframe() after start_keyframe()
-    void add_function(std::function<void()> function);
+    // Add a track to play at the start of the keyframe
+    void add_track(int track_index, DfMp3 *dfmp3);
 
     // Sets up the Ramp for all the servos in this keyframe and starts them
     void start_keyframe();
@@ -68,8 +69,9 @@ class ServoKeyframe {
     ServoKeyframe *_next;
     ServoKeyframe *_prev;
 
-    std::function<void()> _function;
-    bool _function_has_fired;
+    int _track_index;
+    bool _track_has_played;
+    DfMp3 *_dfmp3;
 };
 
 #endif // SERVO_KEYFRAME_HPP

@@ -12,7 +12,9 @@ ServoPlayer& ServoPlayer::getInstance() {
 void ServoPlayer::play(ServoAnimation *animation) {
     // Play the animation
     _current_animation = animation;
-    _current_animation->play();
+    if (_current_animation != nullptr) {
+        _current_animation->play();
+    }
 }
 
 void ServoPlayer::stop() {

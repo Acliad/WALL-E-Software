@@ -13,9 +13,9 @@
 #include "display_animations.hpp"
 #include "motion_animations.hpp"
 #include "src/motion/servo_context.hpp"
+#include "src/audio/audio_player.h"
 #include <Adafruit_PWMServoDriver.h>
 #include <Bluepad32.h>
-#include <DFMiniMp3.h>
 #include <Wire.h>
 #include <SPIFFS.h>
 

@@ -93,9 +93,9 @@ std::unique_ptr<ServoAnimation> ServoAnimationRecorder::takeAnimation() {
     return std::move(_animation);
 }
 
-void ServoAnimationRecorder::addFunctionToKeyframe(std::function<void()> function) {
+void ServoAnimationRecorder::addTrackToKeyframe(int track_index, DfMp3 *dfmp3) {
     if (_current_keyframe != nullptr) {
-        _current_keyframe->add_function(function);
+        _current_keyframe->add_track(track_index, dfmp3);
     }
 }
 

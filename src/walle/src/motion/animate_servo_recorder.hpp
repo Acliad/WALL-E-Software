@@ -7,6 +7,7 @@
 #include "servo_keyframe.hpp"
 #include "servo_context.hpp"
 #include "../display/display.hpp"
+#include "../audio/audio_player.h"
 #include "servo_player.hpp"
 
 class ServoAnimationRecorder {
@@ -38,7 +39,7 @@ class ServoAnimationRecorder {
 
     std::unique_ptr<ServoAnimation> takeAnimation();
 
-    void addFunctionToKeyframe(std::function<void()> function);
+    void addTrackToKeyframe(int track_index, DfMp3 *_dfmp3);
 
   private:
     const unsigned int _DEFAULT_KEYFRAME_LENGTH_MS = 1500;

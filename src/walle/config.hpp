@@ -133,7 +133,7 @@ int audio_track_random_list[] = {
 // 1: right
 // 2: down
 // 3: left
-int audio_track_selection_list[4] = {
+int audio_track_selection_list[] = {
     TRACK_INDEX_EVE_1, // Up
     TRACK_INDEX_TADA, // Right
     TRACK_INDEX_SCREAM, // Down
