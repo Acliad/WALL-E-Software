@@ -2,42 +2,59 @@
 
 ServoAnimationRecorder::ServoAnimationRecorder(Display &display, ServoContext &servo_context)
     : _state(States::ENTRY), _animation(new ServoAnimation()), _display(display),
-      _display_start_mode(display.getMode()), _keyframe_num(0), _servos(servo_context), _current_keyframe(nullptr),
-      _cursor_position(_DEFAULT_CURSOR_POSITION), _servo_player(ServoPlayer::getInstance()), _cycle_animation(nullptr) {
+      _display_start_mode(display.getMode()), _keyframe_num(0), _servos(servo_context),
+      _current_keyframe(new ServoKeyframe(_DEFAULT_KEYFRAME_LENGTH_MS)), _cursor_position(_DEFAULT_CURSOR_POSITION),
+      _servo_player(ServoPlayer::getInstance()), _cycle_animation(nullptr) {
+
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    Serial.println("ServoAnimationRecorder::ServoAnimationRecorder()");
+    Serial.println("Setting display mode...");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
     _display.setMode(Display::Mode::RECORDER);
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    Serial.println("Setting recording panel...");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
     _display.recording_panel.setStartPage();
+
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    Serial.println("Adding keyframe to animation...");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
+    // Add this initial (head) keyframe to this animation
+    _animation->add_keyframe(_current_keyframe);
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    Serial.println("Initialization complete!");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
 }
 
 ServoAnimationRecorder::~ServoAnimationRecorder() {
     _display.setMode(_display_start_mode);
 
     // Delete the keyframes if the animation was not taken
-    if (_animation != nullptr && _current_keyframe != nullptr) {
-        // Delete any keyframes ahead of the current keyframe
-        ServoKeyframe *next = _current_keyframe->get_next();
-        while (next != nullptr) {
-            ServoKeyframe *temp = next;
-            next = next->get_next();
-            delete temp;
-        }
-        // Delete any keyframes behind the current keyframe
-        ServoKeyframe *prev = _current_keyframe->get_prev();
-        while (prev != nullptr) {
-            ServoKeyframe *temp = prev;
-            prev = prev->get_prev();
-            delete temp;
-        }
-        // Delete the current keyframe
-        delete _current_keyframe;
-        _current_keyframe = nullptr;
+    // TODO: Just delete the animation? We at least need to delete the animation
+    if (_animation != nullptr) {
+        delete _animation;
+    }
+
+    // Make sure the servo player isn't trying to play the cycle animation
+    if (_servo_player.getCurrentAnimation() == _cycle_animation) {
+        _servo_player.stop();
+    }
+    // Delete the cycle animation if it exists
+    if (_cycle_animation != nullptr) {
+        delete _cycle_animation;
     }
 }
 
 ServoAnimationRecorder::States ServoAnimationRecorder::inputEvent(Inputs input) {
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    Serial.println("ServoAnimationRecorder::inputEvent()");
+    Serial.print("Input: ");
+    Serial.println(static_cast<int>(input));
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
     switch (_state) {
     case States::ENTRY:
         if (input == Inputs::UP || input == Inputs::DOWN || input == Inputs::LEFT || input == Inputs::RIGHT) {
-            _setupRecordingState();
+            _updateRecordingState();
             _state = States::RECORDING;
         } else if (input == Inputs::CANCEL) {
             _display.recording_panel.setCancelPage();
@@ -57,10 +74,12 @@ ServoAnimationRecorder::States ServoAnimationRecorder::inputEvent(Inputs input) 
         break;
     case States::SAVE:
         if (input == Inputs::DONE) {
+            // TODO: Delete? 
+            // Make sure the servo player isn't trying to play the cycle animation
+            // if (_servo_player.getCurrentAnimation() == _cycle_animation) {
+            //     _servo_player.stop();
+            // }
             _saveCurrentKeyframeServos();
-            // NOTE: add_keyframe will find the first keyframe in the list and add the new keyframe list to the end of
-            // the animation, so we don't need to worry about the current keyframe's position in the list
-            _animation->add_keyframe(_current_keyframe);
             _display.setMode(_display_start_mode);
             _state = States::DONE;
         } else {
@@ -71,8 +90,14 @@ ServoAnimationRecorder::States ServoAnimationRecorder::inputEvent(Inputs input) 
         break;
     case States::CANCEL:
         if (input == Inputs::CANCEL) {
-            _display.setMode(_display_start_mode);
+            // TODO: Delete?
+            // Make sure the servo player isn't trying to play the cycle animation
+            // if (_servo_player.getCurrentAnimation() == _cycle_animation) {
+            //     _servo_player.stop();
+            // }
+            delete _animation;
             _animation = nullptr;
+            _display.setMode(_display_start_mode);
             _state = States::DONE;
         }
         else {
@@ -89,8 +114,24 @@ ServoAnimationRecorder::States ServoAnimationRecorder::getState() {
     return _state;
 }
 
-std::unique_ptr<ServoAnimation> ServoAnimationRecorder::takeAnimation() {
-    return std::move(_animation);
+ServoAnimation *ServoAnimationRecorder::takeAnimation() {
+    ServoAnimation *ret = _animation;
+    _animation = nullptr;
+    _current_keyframe = nullptr;
+    return ret;
+}
+
+void ServoAnimationRecorder::setAnimation(ServoAnimation *animation) {
+    if (_animation != nullptr) {
+        delete _animation;
+    }
+    _animation = new ServoAnimation(*animation);
+    _current_keyframe = _animation->get_head();
+    _keyframe_num = 0;
+    _cursor_position = _DEFAULT_CURSOR_POSITION;
+    _display.recording_panel.setRecordingPage(_current_keyframe->get_duration(), _cursor_position, _keyframe_num,
+                                              &_servos);
+    _moveServosToCurrentKeyframe();
 }
 
 void ServoAnimationRecorder::addTrackToKeyframe(int track_index, DfMp3 *dfmp3) {
@@ -99,9 +140,9 @@ void ServoAnimationRecorder::addTrackToKeyframe(int track_index, DfMp3 *dfmp3) {
     }
 }
 
-void ServoAnimationRecorder::_setupRecordingState() {
-    _current_keyframe = new ServoKeyframe(_DEFAULT_KEYFRAME_LENGTH_MS);
-    _display.recording_panel.setRecordingPage(_DEFAULT_KEYFRAME_LENGTH_MS, _cursor_position, _keyframe_num, &_servos);
+void ServoAnimationRecorder::_updateRecordingState() {
+    _display.recording_panel.setRecordingPage(_current_keyframe->get_duration(), _cursor_position, _keyframe_num,
+                                              &_servos);
 }
 
 void ServoAnimationRecorder::_handleRecordingInput(Inputs input) {
@@ -119,6 +160,8 @@ void ServoAnimationRecorder::_handleRecordingInput(Inputs input) {
     case Inputs::PREV:
         _goToPrevKeyframe();
         break;
+    case Inputs::DELETE:
+        _deleteCurrentKeyframe();
     default:
         return;
     }
@@ -155,6 +198,29 @@ void ServoAnimationRecorder::_goToPrevKeyframe() {
     }
 }
 
+void ServoAnimationRecorder::_deleteCurrentKeyframe() {
+    // Remove the current keyframe from the animtion. Defaults to going to the next keyframe if it exists, otherwise
+    // the previous keyframe
+    ServoKeyframe *to_delete = _current_keyframe;
+
+    // If there is another keyframe after this one, move to it
+    if (_current_keyframe->get_next() != nullptr) {
+        _goToNextKeyframe();
+        _keyframe_num--; // Next keyframe is now the current keyframe, so decrement the keyframe number
+    } else if (_current_keyframe->get_prev() != nullptr) { // If there is another keyframe before this one, move to it
+        _goToPrevKeyframe();
+    } else { // If there are no other keyframes, we're at the head and we can't delete it
+        return;
+    }
+
+    // If we removed the head, set the new head
+    if (to_delete == _animation->get_head()) {
+        _animation->set_head(_current_keyframe);
+    }
+    // Remove the keyframe from the animation
+    delete to_delete; // NOTE: The deconstructor for ServoKeyframe will restitch the list
+}
+
 void ServoAnimationRecorder::_moveServosToCurrentKeyframe() {
     // Moves all the servos to the position for this keyframe. This is used when cycling through keyframes so the 
     // servo position can be edited. servo_player singleton is used to make it easy to syncronize with the rest of the
@@ -162,13 +228,18 @@ void ServoAnimationRecorder::_moveServosToCurrentKeyframe() {
     if (_servo_player.isPlaying()) {
         _servo_player.stop();
     }
-    _cycle_animation = std::make_shared<ServoAnimation>();
+
+    // Delete the current cycle animation if it exists
+    if (_cycle_animation != nullptr) {
+        delete _cycle_animation;
+    }
+    _cycle_animation = new ServoAnimation();
     ServoKeyframe *isolated_keyframe = new ServoKeyframe(*_current_keyframe);
     isolated_keyframe->set_next(nullptr);
     isolated_keyframe->set_prev(nullptr);
     isolated_keyframe->set_duration(_KEYFRAME_CHANGE_DURATION_MS);
     _cycle_animation->add_keyframe(isolated_keyframe);
-    _servo_player.play(_cycle_animation.get());
+    _servo_player.play(_cycle_animation);
 }
 
 void ServoAnimationRecorder::_updateKeyframeDuration(Inputs input) {
@@ -196,12 +267,9 @@ void ServoAnimationRecorder::_updateKeyframeDuration(Inputs input) {
 }
 
 void ServoAnimationRecorder::_saveCurrentKeyframeServos() {
-    // Create a lambda function that takes a ServoMotor as an argument and adds the current position to the keyframe
-    auto add_servo_position = [this](ServoMotor *servo) {
-        _current_keyframe->add_servo_scalar(servo, servo->get_current_scalar());
-    };
-    // Apply the lambda to all the servos
-    _servos.applyToAllServos(add_servo_position);
+    for (auto &servo : _servos.map) {
+        _current_keyframe->add_servo_scalar(servo.second, servo.second->get_current_scalar());
+    }
 }
 
 // TODO: Remove?

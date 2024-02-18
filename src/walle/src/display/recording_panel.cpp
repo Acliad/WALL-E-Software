@@ -300,21 +300,21 @@ void RecordingPanel::_drawCancelPage(TFT_eSPI &tft) {
 }
 
 void RecordingPanel::_updateServoPositions() {
-    _given_info.left_eye_position       = _servos->servo_eye_left->get_current_scalar();
-    _given_info.right_eye_position      = _servos->servo_eye_right->get_current_scalar();
+    _given_info.left_eye_position       = _servos->map[SERVO_EYE_LEFT_NAME]->get_current_scalar();
+    _given_info.right_eye_position      = _servos->map[SERVO_EYE_RIGHT_NAME]->get_current_scalar();
 
-    _given_info.neck_pitch_position     = _servos->servo_neck_pitch->get_current_scalar();
-    _given_info.neck_yaw_position       = _servos->servo_neck_yaw->get_current_scalar();
+    _given_info.neck_pitch_position     = _servos->map[SERVO_NECK_PITCH_NAME]->get_current_scalar();
+    _given_info.neck_yaw_position       = _servos->map[SERVO_NECK_YAW_NAME]->get_current_scalar();
 
-    _given_info.left_shoulder_position  = _servos->servo_shoulder_left->get_current_scalar();
-    _given_info.right_shoulder_position = _servos->servo_shoulder_right->get_current_scalar();
+    _given_info.left_shoulder_position  = _servos->map[SERVO_SHOULDER_LEFT_NAME]->get_current_scalar();
+    _given_info.right_shoulder_position = _servos->map[SERVO_SHOULDER_RIGHT_NAME]->get_current_scalar();
 
-    _given_info.left_elbow_position     = _servos->servo_elbow_left->get_current_scalar();
-    _given_info.right_elbow_position    = _servos->servo_elbow_right->get_current_scalar();
+    _given_info.left_elbow_position     = _servos->map[SERVO_ELBOW_LEFT_NAME]->get_current_scalar();
+    _given_info.right_elbow_position    = _servos->map[SERVO_ELBOW_RIGHT_NAME]->get_current_scalar();
 
-    _given_info.left_wrist_position     = _servos->servo_wrist_left->get_current_scalar();
-    _given_info.right_wrist_position    = _servos->servo_wrist_right->get_current_scalar();
+    _given_info.left_wrist_position     = _servos->map[SERVO_WRIST_LEFT_NAME]->get_current_scalar();
+    _given_info.right_wrist_position    = _servos->map[SERVO_WRIST_RIGHT_NAME]->get_current_scalar();
 
-    _given_info.left_hand_position      = _servos->servo_hand_left->get_current_scalar();
-    _given_info.right_hand_position     = _servos->servo_hand_right->get_current_scalar();
+    _given_info.left_hand_position      = _servos->map[SERVO_HAND_LEFT_NAME]->get_current_scalar();
+    _given_info.right_hand_position     = _servos->map[SERVO_HAND_RIGHT_NAME]->get_current_scalar();
 }

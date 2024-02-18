@@ -14,7 +14,7 @@ Motor::Motor(Adafruit_PWMServoDriver *pca9685, int pin, std::string name, int ne
 void Motor::update() {
     // write _current_us to _pin
 
-    // NOTE: Adafruit's microseconds function reads the prescaler every time this is called, which is a bit unnessisary.
+    // NOTE: Adafruit's microseconds function reads the prescaler every time this is called, which is a bit unnecessary.
     // If there becomes a reason to, we can directly callculate the OCR value (4095 counter) from us and our best guess
     // at clock rate. Servos don't seem to be too picky.
     _pwm_driver->writeMicroseconds(_pin, _current_us);

@@ -17,30 +17,30 @@
  **************************************************************/
 /*----------- PCA9685 PWM Module -------------------------*/
 const unsigned int PCA9685_OSCILLATION_FREQ = 25000000; // TODO: Needs to be tuned?
-const unsigned int SERVO_FREQ_HZ = 50; // NOTE: Analog servos run at ~50 Hz updates
+const unsigned int SERVO_FREQ_HZ = 50;                  // NOTE: Analog servos run at ~50 Hz updates
 
 /*----------- Controllers --------------------------------*/
 const unsigned int MAX_NUM_GAMEPADS = 2;
 
 /*----------- Buttons ------------------------------------*/
 const unsigned int BUTTON_PIN_RECORD = 32;
-const unsigned int BUTTON_PIN_PLAY   = 35;
-const unsigned int BUTTON_PIN_STOP   = 34;
-const unsigned int BUTTON_PIN_SUN    = 33;
+const unsigned int BUTTON_PIN_PLAY = 35;
+const unsigned int BUTTON_PIN_STOP = 34;
+const unsigned int BUTTON_PIN_SUN = 33;
 
 /*----------- Animations ---------------------------------*/
-const char* ANIMATION_FILE_FORMATTER = "/animation_%d.txt";
-const int ANIMATION_FILE_STRING_BUFFER_SIZE = 30;
+const char *ANIMATION_FILE_FORMATTER = "/animation_%d.txt";
+const int   ANIMATION_FILE_STRING_BUFFER_SIZE = 30;
 
-/************************************************************** 
+/**************************************************************
  *                         Variables                          *
  **************************************************************/
 /*----------- Display ------------------------------------*/
 TFT_eSPI tft = TFT_eSPI();
-Display display = Display(tft);
+Display  display = Display(tft);
 
 /*----------- PCA9685 PWM Module -------------------------*/
-bool pca9685_connected = false;
+bool                    pca9685_connected = false;
 Adafruit_PWMServoDriver pca9685 = Adafruit_PWMServoDriver();
 
 /*----------- Track Motors -------------------------------*/
@@ -85,39 +85,38 @@ ServoMotor servo_hand_right(&pca9685, SERVO_HAND_RIGHT_IDX, SERVO_HAND_RIGHT_NAM
 
 ServoContext servo_context;
 
-
 /*----------- Audio Player -------------------------------*/
 unsigned int audio_current_track = 0;
 unsigned int audio_num_tracks = 1;
-DfMp3 dfmp3 = DfMp3(Serial2);
+DfMp3        dfmp3 = DfMp3(Serial2);
 
 /*----------- Controllers/Buttons -------------------------*/
 GamepadPtr           myGamepads[MAX_NUM_GAMEPADS];
 NavigationController drive_controller;
 NavigationController aux_controller;
 // Keep an array of NavigationControllers to make connecting/disconnecting easier
-NavigationController* controllers[MAX_NUM_GAMEPADS] = {&drive_controller, &aux_controller};
+NavigationController *controllers[MAX_NUM_GAMEPADS] = {&drive_controller, &aux_controller};
 
 // Buttons
 Button button_record = Button(BUTTON_PIN_RECORD, BUTTON_DEBOUNCE_TIME_MS);
-Button button_play   = Button(BUTTON_PIN_PLAY,   BUTTON_DEBOUNCE_TIME_MS);
-Button button_stop   = Button(BUTTON_PIN_STOP,   BUTTON_DEBOUNCE_TIME_MS);
-Button button_sun    = Button(BUTTON_PIN_SUN,    BUTTON_DEBOUNCE_TIME_MS);
+Button button_play = Button(BUTTON_PIN_PLAY, BUTTON_DEBOUNCE_TIME_MS);
+Button button_stop = Button(BUTTON_PIN_STOP, BUTTON_DEBOUNCE_TIME_MS);
+Button button_sun = Button(BUTTON_PIN_SUN, BUTTON_DEBOUNCE_TIME_MS);
 
-Button* buttons[] = {&button_record, &button_play, &button_stop, &button_sun};
+Button *buttons[] = {&button_record, &button_play, &button_stop, &button_sun};
 
 /*----------- General ------------------------------------*/
 enum class WallEState {
     NORMAL,
-    RECORDING,
+    RECORDING_NEW,
+    RECORDING_EDIT
 };
-WallEState state = WallEState::NORMAL;
-ServoAnimationRecorder* servo_recorder = nullptr;
-Stats loop_stats = Stats(0.99);
-ServoAnimation* head_animations[] = {&MotionAnimations::cock_left, &MotionAnimations::wiggle_eyes, &MotionAnimations::sad,
-                                   &MotionAnimations::curious_track};
-ServoPlayer& servo_player = ServoPlayer::getInstance();
-
+WallEState              state = WallEState::NORMAL;
+ServoAnimationRecorder *servo_recorder = nullptr;
+Stats                   loop_stats = Stats(0.99);
+ServoAnimation         *head_animations[] = {&MotionAnimations::cock_left, &MotionAnimations::wiggle_eyes,
+                                             &MotionAnimations::sad, &MotionAnimations::curious_track};
+ServoPlayer            &servo_player = ServoPlayer::getInstance();
 
 /**************************************************************
  *                    Function Prototypes                     *
@@ -135,8 +134,6 @@ void updateAll();
 
 void setup() {
     Serial.begin(115200);
-
-    
 
     /*----------- Display --------------------------------*/
     display.begin();
@@ -168,18 +165,6 @@ void setup() {
 
     /*----------- Servo Motors ---------------------------*/
     initServos();
-    servo_context.servo_neck_yaw = &servo_neck_yaw;
-    servo_context.servo_neck_pitch = &servo_neck_pitch;
-    servo_context.servo_eye_left = &servo_eye_left;
-    servo_context.servo_eye_right = &servo_eye_right;
-    servo_context.servo_shoulder_left = &servo_shoulder_left;
-    servo_context.servo_shoulder_right = &servo_shoulder_right;
-    servo_context.servo_elbow_left = &servo_elbow_left;
-    servo_context.servo_elbow_right = &servo_elbow_right;
-    servo_context.servo_wrist_left = &servo_wrist_left;
-    servo_context.servo_wrist_right = &servo_wrist_right;
-    servo_context.servo_hand_left = &servo_hand_left;
-    servo_context.servo_hand_right = &servo_hand_right;
 
     MotionAnimations::setup_animations(servo_context);
 
@@ -214,15 +199,14 @@ void setup() {
         Serial.println("************> Initialization failed...");
     } else {
         // Load saved animations from SPIFFS
-        for (int i = 0; i < (sizeof(head_animations)/sizeof(head_animations[0])); i ++) {
+        for (int i = 0; i < (sizeof(head_animations) / sizeof(head_animations[0])); i++) {
             // Check if a file exists for this slot
             char file_name_buff[ANIMATION_FILE_STRING_BUFFER_SIZE];
             sprintf(file_name_buff, ANIMATION_FILE_FORMATTER, i);
 
             if (SPIFFS.exists(file_name_buff)) {
                 // Load the animation and store it in the array
-                std::unique_ptr<ServoAnimation> loaded = ServoAnimation::load(SPIFFS, file_name_buff, servo_context);
-                head_animations[i] = loaded.release();
+                head_animations[i] = ServoAnimation::load(SPIFFS, file_name_buff, servo_context, &dfmp3);
             }
         }
     }
@@ -233,7 +217,7 @@ void setup() {
 
 void loop() {
     static unsigned long loop_start_time = millis();
-    float dt = (float) (millis() - loop_start_time) / 1000.0;
+    float                dt = (float)(millis() - loop_start_time) / 1000.0;
     loop_start_time = millis();
 
     updateAll();
@@ -251,28 +235,54 @@ void loop() {
         last_update_time = millis();
 
         // Serial.println("--------------------------------------------------");
+        // Serial.print("Loop time (ms): ");
+        // Serial.println(loop_stats.average());
         // Serial.print("Free heap bytes: ");
         // Serial.println(ESP.getFreeHeap());
         // Serial.println("--------------------------------------------------");
-
     }
 }
 
 void initServos() {
+    /*************************************
+     * Add servos to global servo context
+     *************************************/
+    servo_context.map[SERVO_NECK_YAW_NAME]       = &servo_neck_yaw;
+    servo_context.map[SERVO_NECK_PITCH_NAME]     = &servo_neck_pitch;
+
+    servo_context.map[SERVO_EYE_LEFT_NAME]       = &servo_eye_left;
+    servo_context.map[SERVO_EYE_RIGHT_NAME]      = &servo_eye_right;
+
+    servo_context.map[SERVO_SHOULDER_LEFT_NAME]  = &servo_shoulder_left;
+    servo_context.map[SERVO_SHOULDER_RIGHT_NAME] = &servo_shoulder_right;
+
+    servo_context.map[SERVO_ELBOW_LEFT_NAME]     = &servo_elbow_left;
+    servo_context.map[SERVO_ELBOW_RIGHT_NAME]    = &servo_elbow_right;
+
+    servo_context.map[SERVO_WRIST_LEFT_NAME]     = &servo_wrist_left;
+    servo_context.map[SERVO_WRIST_RIGHT_NAME]    = &servo_wrist_right;
+
+    servo_context.map[SERVO_HAND_LEFT_NAME]      = &servo_hand_left;
+    servo_context.map[SERVO_HAND_RIGHT_NAME]     = &servo_hand_right;
+
     // Set ramp mode to SINUSOIDAL_INOUT for all motors
     servo_neck_yaw.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_neck_pitch.set_ramp_mode(SINUSOIDAL_INOUT);
+
     servo_eye_left.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_eye_right.set_ramp_mode(SINUSOIDAL_INOUT);
+
     servo_shoulder_left.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_shoulder_right.set_ramp_mode(SINUSOIDAL_INOUT);
+
     servo_elbow_left.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_elbow_right.set_ramp_mode(SINUSOIDAL_INOUT);
+    
     servo_wrist_left.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_wrist_right.set_ramp_mode(SINUSOIDAL_INOUT);
+    
     servo_hand_left.set_ramp_mode(SINUSOIDAL_INOUT);
     servo_hand_right.set_ramp_mode(SINUSOIDAL_INOUT);
-
 
     /*************************************
      * Setup the eye servos
@@ -418,7 +428,7 @@ void mapThumbstick(int thumbstick_x, int thumbstick_y, float *left_motor_speed, 
  * Callback function called when a gamepad is connected.
  * It assigns the gamepad to an empty slot in the controllers array.
  * If no empty slot is found, it prints an error message.
- * 
+ *
  * @param gp The connected gamepad.
  */
 void onConnectedGamepad(GamepadPtr gp) {
@@ -430,8 +440,8 @@ void onConnectedGamepad(GamepadPtr gp) {
             // NOTE: There seemst to be a bug related to scan_evt that will cause the controllers to sometimes
             // discconect and print a message in the console like: "FEX 7 0" or "FEX 7 1". Refer to #43
             // https://github.com/ricardoquesada/bluepad32/issues/43 for more information. That issue reported that
-            // disabling new connections would fix the issue, so here's the workaround. 
-            if (i == MAX_NUM_GAMEPADS-1) {
+            // disabling new connections would fix the issue, so here's the workaround.
+            if (i == MAX_NUM_GAMEPADS - 1) {
                 BP32.enableNewBluetoothConnections(false);
             }
             Serial.printf("CALLBACK: Gamepad is connected, index=%d\n", i);
@@ -446,9 +456,9 @@ void onConnectedGamepad(GamepadPtr gp) {
 /**
  * Callback function called when a gamepad is disconnected.
  * It searches for the disconnected gamepad in the list of controllers and updates the corresponding entry.
- * If the gamepad is not found in the list, it prints a message indicating that the gamepad was disconnected but not 
+ * If the gamepad is not found in the list, it prints a message indicating that the gamepad was disconnected but not
  * found.
- * 
+ *
  * @param gp The disconnected gamepad.
  */
 void onDisconnectedGamepad(GamepadPtr gp) {
@@ -481,7 +491,7 @@ void onDisconnectedGamepad(GamepadPtr gp) {
 
 /**
  * Checks if any gamepad is connected.
- * 
+ *
  * @return true if at least one gamepad is connected, false otherwise.
  */
 bool isGamepadConnected() {
@@ -495,11 +505,14 @@ bool isGamepadConnected() {
 
 /**
  * @brief Updates all components of the Wall-E robot with update functions.
- * 
+ *
  * This function updates the display, motors/servos, and controllers of the Wall-E robot.
  * It is called periodically to ensure that all components are functioning properly.
  */
 void updateAll() {
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    // Serial.println("Updating all...");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
     /*----------- Display --------------------------------*/
     display.update();
 
@@ -511,10 +524,19 @@ void updateAll() {
         motor_r.update();
         motor_l.update();
 
+        // DEBUG >>>>>>>>>>>>>>>>>>>
+        Serial.println("Checking servo player...");
+        // DEBUG <<<<<<<<<<<<<<<<<<<<
         // Update servos unless animating
         if (servo_player.isPlaying()) {
+            // DEBUG >>>>>>>>>>>>>>>>>>>
+            Serial.println("Servo player is playing, updating...");
+            // DEBUG <<<<<<<<<<<<<<<<<<<<
             servo_player.update();
 
+            // DEBUG >>>>>>>>>>>>>>>>>>>
+            Serial.println("Getting current servo positions...");
+            // DEBUG <<<<<<<<<<<<<<<<<<<<
             // Update the tracked positions
             neck_yaw_position = servo_neck_yaw.get_scalar();
             neck_pitch_position = servo_neck_pitch.get_scalar();
@@ -534,6 +556,9 @@ void updateAll() {
             hand_left_position = servo_hand_left.get_scalar();
             hand_right_position = servo_hand_right.get_scalar();
         } else {
+            // DEBUG >>>>>>>>>>>>>>>>>>>
+            // Serial.println("Servo player is not playing, setting servo positions...");
+            // DEBUG <<<<<<<<<<<<<<<<<<<<
             // Set servo positions
             servo_neck_yaw.set_scalar(neck_yaw_position, 0);
             servo_neck_pitch.set_scalar(neck_pitch_position, 0);
@@ -543,7 +568,7 @@ void updateAll() {
 
             servo_shoulder_left.set_scalar(shoulder_left_position, 0);
             servo_shoulder_right.set_scalar(shoulder_right_position, 0);
-            
+
             servo_elbow_left.set_scalar(elbow_left_position, 0);
             servo_elbow_right.set_scalar(elbow_right_position, 0);
 
@@ -553,6 +578,9 @@ void updateAll() {
             servo_hand_left.set_scalar(hand_left_position, 0);
             servo_hand_right.set_scalar(hand_right_position, 0);
 
+            // DEBUG >>>>>>>>>>>>>>>>>>>
+            // Serial.println("Updating servo positions...");
+            // DEBUG <<<<<<<<<<<<<<<<<<<<
             servo_neck_yaw.update();
             servo_neck_pitch.update();
             servo_eye_left.update();
@@ -568,25 +596,35 @@ void updateAll() {
         }
     }
 
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    // Serial.println("Updating audio player...");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
 #ifdef ENABLE_AUDIO
     /*----------- Audio Player ---------------------------*/
     dfmp3.loop();
 #endif
 
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    // Serial.println("Updating controllers and buttons...");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
     /*----------- Controllers ----------------------------*/
     for (unsigned int i = 0; i < MAX_NUM_GAMEPADS; i++) {
         controllers[i]->update();
     }
-    
+
     /*----------- Buttons --------------------------------*/
     for (unsigned int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
         buttons[i]->update();
     }
+
+    // DEBUG >>>>>>>>>>>>>>>>>>>
+    // Serial.println("Done updating all!");
+    // DEBUG <<<<<<<<<<<<<<<<<<<<
 }
 
 /**
  * @brief Plays a random track from the audio_track_random_list array. This list is defined in config.hpp.
- * 
+ *
  */
 void playRandomTrack() {
     int random_index = random(sizeof(audio_track_random_list) / sizeof(audio_track_random_list[0]));
@@ -661,8 +699,8 @@ void mapInputs(float dt) {
         // ------------- Hands -------------
         hand_left_position = constrain(
             hand_left_position + HAND_MOVE_RATE_PER_S * -drive_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
-        hand_right_position = constrain(
-            hand_right_position + HAND_MOVE_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+        hand_right_position =
+            constrain(hand_right_position + HAND_MOVE_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
     }
 
     /*----------- Animations -----------------------------*/
@@ -701,16 +739,26 @@ void mapInputs(float dt) {
     }
 
     /*----------- Buttons --------------------------------*/
-    if (button_record.wasPressed() && state == WallEState::NORMAL) {
-        state = WallEState::RECORDING;
+    if (state == WallEState::NORMAL && button_record.wasPressed()) {
+        // DEBUG >>>>>>>>>>>>>>>>>>>
+        Serial.println("New recording starting...");
+        // DEBUG <<<<<<<<<<<<<<<<<<<<
+        state = WallEState::RECORDING_NEW;
+        servo_recorder = new ServoAnimationRecorder(display, servo_context);
+    } else if (state == WallEState::NORMAL && button_play.wasPressed()) {
+        // DEBUG >>>>>>>>>>>>>>>>>>>
+        Serial.println("Edit recording starting...");
+        // DEBUG <<<<<<<<<<<<<<<<<<<<
+        state = WallEState::RECORDING_EDIT;
         servo_recorder = new ServoAnimationRecorder(display, servo_context);
     }
 
-
     /*----------- Recording Mode Inputs ------------------*/
-    if (state == WallEState::RECORDING) {
-        static int save_to_button_index = 0;
+    // TODO: Lots of code duplication and difficult to read. Refactor this.
+    if (state == WallEState::RECORDING_NEW || state == WallEState::RECORDING_EDIT) {
+        static int                     save_to_button_index = 0;
         ServoAnimationRecorder::States recorder_state = servo_recorder->getState();
+
         if (button_stop.wasPressed() || aux_controller.xWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::CANCEL);
         } else if (button_play.wasPressed() || aux_controller.circleWasPressed()) {
@@ -718,23 +766,40 @@ void mapInputs(float dt) {
         } else if (drive_controller.upWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
                 save_to_button_index = 0;
+                if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
+                    servo_recorder->setAnimation(head_animations[save_to_button_index]);
+                }
             }
+            // DEBUG >>>>>>>>>>>>>>>>>>>
+            // Serial.println("Up was pressed, sending event...");
+            // DEBUG <<<<<<<<<<<<<<<<<<<<
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::UP);
         } else if (drive_controller.rightWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
                 save_to_button_index = 1;
+                if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
+                    servo_recorder->setAnimation(head_animations[save_to_button_index]);
+                }
             }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::RIGHT);
         } else if (drive_controller.downWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
                 save_to_button_index = 2;
+                if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
+                    servo_recorder->setAnimation(head_animations[save_to_button_index]);
+                }
             }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DOWN);
         } else if (drive_controller.leftWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
                 save_to_button_index = 3;
+                if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
+                    servo_recorder->setAnimation(head_animations[save_to_button_index]);
+                }
             }
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::LEFT);
+        } else if (drive_controller.thumbstickWasPressed()) {
+            recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DELETE);
         } else if (drive_controller.xWasPressed()) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::PREV);
         } else if (drive_controller.circleWasPressed()) {
@@ -757,17 +822,18 @@ void mapInputs(float dt) {
         // DEBUG <<<<<<<<<<<<<<<<<<<<
 
         if (recorder_state == ServoAnimationRecorder::States::DONE) {
-            std::unique_ptr<ServoAnimation> animation = servo_recorder->takeAnimation();
+            ServoAnimation *animation = servo_recorder->takeAnimation();
             if (animation != nullptr) {
                 // Save the new animation to SPIFFS
                 char file_name_buff[ANIMATION_FILE_STRING_BUFFER_SIZE];
                 sprintf(file_name_buff, ANIMATION_FILE_FORMATTER, save_to_button_index);
                 animation->save(SPIFFS, file_name_buff);
+
                 // Delete the old animation and store the new one
                 if (head_animations[save_to_button_index] != nullptr) {
                     delete head_animations[save_to_button_index];
                 }
-                head_animations[save_to_button_index] = animation.release();
+                head_animations[save_to_button_index] = animation;
             }
             state = WallEState::NORMAL;
             delete servo_recorder;

@@ -17,6 +17,7 @@ class ServoAnimationRecorder {
         DONE, 
         NEXT, 
         PREV, 
+        DELETE,
         UP, 
         DOWN, 
         LEFT, 
@@ -37,7 +38,8 @@ class ServoAnimationRecorder {
     States inputEvent(Inputs input);
     States getState();
 
-    std::unique_ptr<ServoAnimation> takeAnimation();
+    ServoAnimation *takeAnimation();
+    void setAnimation(ServoAnimation *animation);
 
     void addTrackToKeyframe(int track_index, DfMp3 *_dfmp3);
 
@@ -52,8 +54,8 @@ class ServoAnimationRecorder {
     States _state;
     Display& _display;
     Display::Mode _display_start_mode;
-    std::unique_ptr<ServoAnimation> _animation;
-    std::shared_ptr<ServoAnimation> _cycle_animation;
+    ServoAnimation *_animation;
+    ServoAnimation *_cycle_animation;
     ServoKeyframe* _current_keyframe;
     ServoContext& _servos;
     ServoPlayer& _servo_player; // Used to move the servos during keyframe changes
@@ -62,10 +64,11 @@ class ServoAnimationRecorder {
     int _current_keyframe_duration_ms;
     unsigned int _cursor_position;
 
-    void _setupRecordingState();
+    void _updateRecordingState();
     void _handleRecordingInput(Inputs input);
     void _goToNextKeyframe();
     void _goToPrevKeyframe();
+    void _deleteCurrentKeyframe();
     void _moveServosToCurrentKeyframe();
     void _updateKeyframeDuration(Inputs input);
     void _saveCurrentKeyframeServos();

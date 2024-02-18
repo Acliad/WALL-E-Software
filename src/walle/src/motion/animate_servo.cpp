@@ -5,6 +5,15 @@ ServoAnimation::ServoAnimation()
       _keyframe_has_started(false) {
 }
 
+ServoAnimation::ServoAnimation(const ServoAnimation &other) : ServoAnimation() {
+    // Copy the keyframes from the other animation
+    ServoKeyframe *current = other._head;
+    while (current != nullptr) {
+        add_keyframe(new ServoKeyframe(*current));
+        current = current->get_next();
+    }
+}
+
 ServoAnimation::~ServoAnimation() {
     // Iterate through the keyframes and delete them
     ServoKeyframe *current = _head;
@@ -87,6 +96,14 @@ bool ServoAnimation::isPlaying() {
     return _playing;
 }
 
+ServoKeyframe *ServoAnimation::get_head() {
+    return _head;
+}
+
+void *ServoAnimation::set_head(ServoKeyframe *head) {
+    _head = head;
+}
+
 void ServoAnimation::printDebugInfo() {
     Serial.println("--------- ServoAnimation ---------");
     Serial.print("Playing: ");
@@ -130,7 +147,8 @@ bool ServoAnimation::save(fs::FS &filesystem, const char *filename) {
     return success;
 }
 
-std::unique_ptr<ServoAnimation> ServoAnimation::load(fs::FS &filesystem, const char* filename, ServoContext& servo_context) {
+ServoAnimation* ServoAnimation::load(fs::FS &filesystem, const char *filename,
+                                                     ServoContext &servo_context, DfMp3 *_dfmp3) {
     File animation_file = filesystem.open(filename, FILE_READ);
     if (!animation_file) {
         Serial.println("Failed to open file for reading");
@@ -138,14 +156,14 @@ std::unique_ptr<ServoAnimation> ServoAnimation::load(fs::FS &filesystem, const c
     }
 
     // Read the keyframes from the file and create a new animation from the data
-    std::unique_ptr<ServoAnimation> animation(new ServoAnimation());
-    String                          keyframe_str;
+    ServoAnimation *animation(new ServoAnimation());
+    String          keyframe_str;
     while (animation_file.available()) {
         String line = animation_file.readStringUntil('\n');
         if (line.indexOf(_SERIALIZED_KEYFRAME_START) > -1) {
             keyframe_str.clear();
         } else if (line.indexOf(_SERIALIZED_KEYFRAME_END) > -1) {
-            ServoKeyframe *keyframe = ServoKeyframe::deserialize(keyframe_str.c_str(), servo_context);
+            ServoKeyframe *keyframe = ServoKeyframe::deserialize(keyframe_str.c_str(), servo_context, _dfmp3);
             if (keyframe != nullptr) {
                 animation->add_keyframe(keyframe);
             }

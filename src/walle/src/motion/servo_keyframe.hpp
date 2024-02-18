@@ -18,6 +18,7 @@
 #include <iostream>
 #include <Arduino.h>
 #include <Ramp.h>
+#include <vector>
 #include "servo_motor.hpp"
 #include "servo_context.hpp"
 #include "../audio/audio_player.h"
@@ -50,7 +51,7 @@ class ServoKeyframe {
     ServoKeyframe *get_prev();
 
     std::string serialize() const;
-    static ServoKeyframe *deserialize(std::string keyframe_string, ServoContext& servo_context);
+    static ServoKeyframe *deserialize(std::string keyframe_string, ServoContext&, DfMp3 *_dfmp3);
 
     // Deubgging function to print the servos in the keyframe
     void print_servos() const;

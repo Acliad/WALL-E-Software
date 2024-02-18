@@ -15,11 +15,13 @@ public:
     void stop();
     bool isPlaying();
     void update();
+    ServoAnimation* getCurrentAnimation();
 
 private:
     ServoPlayer();
 
     ServoAnimation* _current_animation;
+    bool _is_playing;
 };
 
 #endif // SERVO_PLAYER_H

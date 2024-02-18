@@ -47,6 +47,9 @@ class ServoMotor : public Motor {
     float us_to_scalar(int us);
     float angle_to_us(float angle_deg);
 
+    // For debugging
+    void print_debug();
+
   private:
     float        _min_angle_deg;
     float        _max_angle_deg;

@@ -114,3 +114,15 @@ float ServoMotor::angle_to_us(float angle_deg) {
         return (float)(angle_deg - _neutral_angle_deg) * _angle_negative_to_us_slope + _neutral_us;
     }
 }
+
+void ServoMotor::print_debug() {
+    // Print the servo's parameters
+    Serial.print("Servo: ");
+    Serial.print(_name.c_str());
+    Serial.print(" | Angle: ");
+    Serial.print(get_angle());
+    Serial.print(" | Scalar: ");
+    Serial.print(get_scalar());
+    Serial.print(" | us: ");
+    Serial.println(_current_us);
+}

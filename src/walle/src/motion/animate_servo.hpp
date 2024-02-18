@@ -26,6 +26,7 @@
 class ServoAnimation {
   public:
     ServoAnimation();
+    ServoAnimation(const ServoAnimation &other);
     ~ServoAnimation();
 
     void add_keyframe(ServoKeyframe *keyframe);
@@ -35,8 +36,12 @@ class ServoAnimation {
 
     bool isPlaying();
 
+    ServoKeyframe *get_head();
+    void *set_head(ServoKeyframe *head);
+
     bool save(fs::FS &filesystem, const char* filename);
-    static std::unique_ptr<ServoAnimation> load(fs::FS &filesystem, const char* filename, ServoContext& servo_context);
+    static ServoAnimation* load(fs::FS &filesystem, const char *filename, ServoContext &servo_context,
+                                                DfMp3 *_dfmp3);
 
     void printDebugInfo();
 

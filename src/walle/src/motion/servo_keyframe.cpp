@@ -9,10 +9,9 @@ ServoKeyframe::ServoKeyframe(const ServoKeyframe &keyframe) {
     _next = nullptr;
     _prev = nullptr;
     _servo_head = nullptr;
-    _track_index = -1;
-    _track_has_played = false;
-
-    // Copy the duration
+    _dfmp3 = keyframe._dfmp3;
+    _track_index = keyframe._track_index;
+    _track_has_played = keyframe._track_has_played;
     _duration_ms = keyframe._duration_ms;
 
     // Copy the linked list of servo_node elements
@@ -30,6 +29,14 @@ ServoKeyframe::~ServoKeyframe() {
         servo_node *next = current->_next;
         delete current;
         current = next;
+    }
+
+    // Stitch the ServoKeyframe linked list back together
+    if (_prev != nullptr) {
+        _prev->set_next(_next);
+    }
+    if (_next != nullptr) {
+        _next->set_prev(_prev);
     }
 }
 
@@ -146,13 +153,16 @@ std::string ServoKeyframe::serialize() const {
         output_str += "servo: " + current->_servo->get_name() + "\n";
         output_str += "target_scalar: " + std::to_string(current->_target_scalar) + "\n";
         output_str += "ramp_mode: " + std::to_string(current->_ramp_mode) + "\n";
+        if (_dfmp3 != nullptr) {
+            output_str += "track_index: " + std::to_string(_track_index) + "\n";
+        }
         current = current->_next;
     }
 
     return output_str;
 }
 
-ServoKeyframe *ServoKeyframe::deserialize(std::string keyframe_string, ServoContext &servo_context) {
+ServoKeyframe *ServoKeyframe::deserialize(std::string keyframe_string, ServoContext &servo_context, DfMp3 *_dfmp3) {
     // Creates a keyframe from the given string. Keyframes are stored as text data with the format:
     // duration_ms: <duration_ms>
     //  servo: <servo_name0>
@@ -193,6 +203,9 @@ ServoKeyframe *ServoKeyframe::deserialize(std::string keyframe_string, ServoCont
             // Get the duration of the new keyframe
             duration_ms = std::stoul(value);
             keyframe->set_duration(duration_ms);
+        } else if (key == "track_index") {
+            // Add a track to play at the start of the keyframe
+            keyframe->add_track(std::stoi(value), _dfmp3);
         } else if (key == "servo") {
             // New servo
             servo_data.push_back(ServoData());
@@ -206,7 +219,7 @@ ServoKeyframe *ServoKeyframe::deserialize(std::string keyframe_string, ServoCont
 
     // Add the servos to the keyframe
     for (auto &data : servo_data) {
-        ServoMotor *servo = servo_context.getByName(data.servo_name);
+        ServoMotor *servo = servo_context.map[data.servo_name];
         if (servo == nullptr) {
             Serial.println("Servo not found");
             continue;
@@ -223,6 +236,10 @@ void ServoKeyframe::print_servos() const {
     while (current != nullptr) {
         Serial.print("Servo: ");
         Serial.println((unsigned int) current->_servo, HEX);
+        Serial.print("  ");
+        current->_servo->print_debug();
+        // Serial.println("  Target Scalar: " + String(current->_target_scalar));
+        // Serial.println("\t Ramp Mode: " + String(current->_ramp_mode));
         current = current->_next;
     }
 }
