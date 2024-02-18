@@ -100,8 +100,10 @@ ServoKeyframe *ServoAnimation::get_head() {
     return _head;
 }
 
-void *ServoAnimation::set_head(ServoKeyframe *head) {
+void ServoAnimation::set_head(ServoKeyframe *head) {
+    stop(); // In case we're playing
     _head = head;
+    _current_keyframe = _head;
 }
 
 void ServoAnimation::printDebugInfo() {

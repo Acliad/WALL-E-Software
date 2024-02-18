@@ -525,17 +525,17 @@ void updateAll() {
         motor_l.update();
 
         // DEBUG >>>>>>>>>>>>>>>>>>>
-        Serial.println("Checking servo player...");
+        // Serial.println("Checking servo player...");
         // DEBUG <<<<<<<<<<<<<<<<<<<<
         // Update servos unless animating
         if (servo_player.isPlaying()) {
             // DEBUG >>>>>>>>>>>>>>>>>>>
-            Serial.println("Servo player is playing, updating...");
+            // Serial.println("Servo player is playing, updating...");
             // DEBUG <<<<<<<<<<<<<<<<<<<<
             servo_player.update();
 
             // DEBUG >>>>>>>>>>>>>>>>>>>
-            Serial.println("Getting current servo positions...");
+            // Serial.println("Getting current servo positions...");
             // DEBUG <<<<<<<<<<<<<<<<<<<<
             // Update the tracked positions
             neck_yaw_position = servo_neck_yaw.get_scalar();

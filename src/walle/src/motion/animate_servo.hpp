@@ -37,7 +37,7 @@ class ServoAnimation {
     bool isPlaying();
 
     ServoKeyframe *get_head();
-    void *set_head(ServoKeyframe *head);
+    void set_head(ServoKeyframe *head);
 
     bool save(fs::FS &filesystem, const char* filename);
     static ServoAnimation* load(fs::FS &filesystem, const char *filename, ServoContext &servo_context,

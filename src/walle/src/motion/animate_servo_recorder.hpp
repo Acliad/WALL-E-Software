@@ -64,7 +64,7 @@ class ServoAnimationRecorder {
     int _current_keyframe_duration_ms;
     unsigned int _cursor_position;
 
-    void _updateRecordingState();
+    void _updateRecordingStateDisplay();
     void _handleRecordingInput(Inputs input);
     void _goToNextKeyframe();
     void _goToPrevKeyframe();
