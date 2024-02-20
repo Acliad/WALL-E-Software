@@ -1,3 +1,14 @@
+/**
+ * @file display.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the Display class, which is used to control the display of the solar
+ * panel and recording panel.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "display.hpp"
 
 
@@ -48,7 +59,7 @@ void Display::setAnimation(AnimateSolarPanel animation) {
     this->animation = animation;
 }
 
-AnimateSolarPanel Display::getAnimation() {
+AnimateSolarPanel& Display::getAnimation() {
     return this->animation;
 }
 

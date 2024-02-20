@@ -1,3 +1,14 @@
+/**
+ * @file motor.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the Motor class, which is used to control a motor using a PCA9685
+ * PWM driver.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "motor.hpp"
 
 Motor::Motor(Adafruit_PWMServoDriver *pca9685, int pin, std::string name, int neutral_us, int min_us, int max_us)

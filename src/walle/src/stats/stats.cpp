@@ -1,3 +1,14 @@
+/**
+ * @file stats.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of a simple Stats class, which is used to calculate statistics on a
+ * stream of numbers.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "stats.hpp"
 
 Stats::Stats(float alpha) : _alpha(alpha) {

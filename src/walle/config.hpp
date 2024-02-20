@@ -119,7 +119,7 @@ const TrackVelocityProfile_t TRACK_VELOCITY_PROFILES[] = {
 #define AUDIO_STARTUP_TRACK (TRACK_INDEX_STARTUP) // NOTE: Set to 0 if you don't want to play anything
 
 // Tracks in this array will be selected randomly by the playRandomTrack() function
-int audio_track_random_list[] = {
+const int audio_track_random_list[] = {
     TRACK_INDEX_EVE_1,
     TRACK_INDEX_EVE_2,
     TRACK_INDEX_EVE_3,
@@ -133,7 +133,7 @@ int audio_track_random_list[] = {
 // 1: right
 // 2: down
 // 3: left
-int audio_track_selection_list[] = {
+const int audio_track_selection_list[] = {
     TRACK_INDEX_EVE_1, // Up
     TRACK_INDEX_TADA, // Right
     TRACK_INDEX_SCREAM, // Down
@@ -164,5 +164,12 @@ int audio_track_selection_list[] = {
 // The deadzone for the thumbsticks. This is the minimum value that the thumbstick must move before the controller
 // registers input. Used to combat controller drift. Value is out of 512.
 #define CONTROLLER_DEADZONE (25)
+
+/*---- General Settings -----------------------------------------------
+*  Various settings for the platform.
+*  -------------------------------------------------------------------*/
+// WARNING: Setting this to true will erase all data on the SPIFFS file system every time it boots. This is useful for
+// for development but should generally be false for animations to persist across boots. 
+// #define FORMAT_SPIFFS_ON_STARTUP // Uncomment to format the SPIFFS file system on startup
 
 #endif /* CONFIG_HPP */

@@ -1,5 +1,15 @@
-#ifndef AUDIO_PLAYER_H
-#define AUDIO_PLAYER_H
+/**
+ * @file audio_player.hpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the declaration for the Mp3Notify class. This class is used to handle notification
+ * events from the DfMp3 library like a file finished playing.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * 
+ */
+#ifndef AUDIO_PLAYER_HPP
+#define AUDIO_PLAYER_HPP
 
 #include <Arduino.h>
 #include <DFMiniMp3.h>

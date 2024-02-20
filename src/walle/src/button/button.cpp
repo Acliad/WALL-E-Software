@@ -1,3 +1,15 @@
+/**
+ * @file button.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation for the Button class. This class is used to abstract button input into a
+ * friendly interface and provide debouncing logic.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "button.hpp"
 
 Button::Button(int pin, unsigned int debounce_time_ms, bool pullup)

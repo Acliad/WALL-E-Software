@@ -27,16 +27,24 @@
  *        them with keyframes. 
  */
 class Display {
-public:
+  public:
+    /**
+     * @enum Mode
+     * @brief Enumerates the different modes of operation for the display.
+     */
     enum class Mode {
-        SOLAR_PANEL,
-        RECORDER
+        SOLAR_PANEL, ///< Represents the solar panel mode.
+        RECORDER     ///< Represents the recorder mode.
     };
 
-    SolarPanel solar_panel;
-    RecordingPanel recording_panel;
-    
-    Display(TFT_eSPI& tft);
+    SolarPanel solar_panel; ///< Instance of SolarPanel to manage solar panel display.
+    RecordingPanel recording_panel; ///< Instance of RecordingPanel to manage recording display.
+
+    /**
+     * @brief Constructor for the Display class.
+     * @param tft Reference to the TFT_eSPI object that controls the display.
+     */
+    Display(TFT_eSPI &tft);
 
     /**
      * @brief Initialize the display for use
@@ -59,7 +67,8 @@ public:
     Mode getMode();
 
     /**
-     * @brief Set the status of a bar
+     * @brief Set the status of a bar on the solar panel.
+     * TODO: Move these to the SolarPanel class
      * 
      * @param index The index of the bar to set
      * @param on ‘true’ if the bar should be on, ‘false’ if it should be off
@@ -68,7 +77,7 @@ public:
     bool isBarOn(unsigned int index);
 
     /**
-     * @brief Update the solar display. This should be called at least once per loop to update animations. 
+     * @brief Update the solar display. This should be called periodicaly to update animations and display elements. 
      * 
      */
     void update();
@@ -79,7 +88,13 @@ public:
      * @param animation The animation to set
      */
     void setAnimation(AnimateSolarPanel animation);
-    AnimateSolarPanel getAnimation();
+
+    /**
+     * @brief Get the animation object
+     * 
+     * @return AnimateSolarPanel The animation object
+     */
+    AnimateSolarPanel& getAnimation();
 
     /**
      * @brief Start the animation
@@ -106,12 +121,6 @@ private:
     AnimateSolarPanel animation;
     Mode _mode;
     bool _force_next_update;
-
-    /**
-     * @brief Initialize the display appearance by drawing the sun and SOLAR CHARGE LEVEL text
-     * 
-     */
-    void _draw_static_display_elements();
 };
 
 #endif

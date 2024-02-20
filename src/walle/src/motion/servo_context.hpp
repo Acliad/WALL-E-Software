@@ -1,5 +1,16 @@
-#ifndef CONTEXTS_HPP
-#define CONTEXTS_HPP
+/**
+ * @file servo_context.hpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file defines the ServoContext class, which is used to store and manage servo motor instances across the
+ * program. It also contains defines for the names of the physical servos. 
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+#ifndef SEREVO_CONTEXT_HPP
+#define SEREVO_CONTEXT_HPP
 
 #include "servo_motor.hpp"
 #include <map>
@@ -19,9 +30,17 @@
 #define SERVO_HAND_LEFT_NAME      "Left Hand"
 #define SERVO_HAND_RIGHT_NAME     "Right Hand"
 
+/**
+ * @brief The ServoContext class represents a context for servo motors.
+ * 
+ * TODO: This should be converted to a singleton class
+ * 
+ * This class provides a static map that associates servo motor names with their corresponding ServoMotor objects.
+ * It allows easy access to servo motors by name throughout the application.
+ */
 class ServoContext{
     public:
         std::map <std::string, ServoMotor*> map;
 };
 
-#endif // CONTEXTS_HPP
+#endif // SEREVO_CONTEXT_HPP

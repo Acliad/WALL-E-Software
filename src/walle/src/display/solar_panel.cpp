@@ -1,3 +1,14 @@
+/**
+ * @file solar_panel.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the SolarPanel class, which is used to control the display of the
+ * solar panel page.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "solar_panel.hpp"
 
 SolarPanel::SolarPanel() : _set_state({{false}, false}), _current_state({{false}, false}){};
@@ -7,10 +18,10 @@ void SolarPanel::setBar(unsigned int index, bool on) {
     this->_set_state.bar_status[index] = on;
 }
 
-void SolarPanel::setAllBars(bool *_bar_status) {
+void SolarPanel::setAllBars(bool bar_status[_SOLAR_PANEL_NUM_BARS]) {
     // Sets all the bar statuses to the values in _bar_status.
     for (int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
-        this->setBar(i, _bar_status[i]);
+        this->setBar(i, bar_status[i]);
     }
 }
 

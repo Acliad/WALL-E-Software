@@ -1,4 +1,14 @@
-#include "audio_player.h"
+/**
+ * @file audio_player.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation for the Mp3Notify class. This class is used to handle notification
+ * events from the DfMp3 library like a file finished playing.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ *
+ */
+#include "audio_player.hpp"
 
 void Mp3Notify::PrintlnSourceAction(DfMp3_PlaySources source, const char *action) {
     if (source & DfMp3_PlaySources_Sd) {

@@ -1,3 +1,14 @@
+/**
+ * @file animate_solar_panel.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the AnimateSolarPanel class. This class is used to animate the solar
+ * panel by turning on and off the bars in a sequence of keyframes.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "animate_solar_panel.hpp"
 
 AnimateSolarPanel::AnimateSolarPanel()
@@ -7,32 +18,50 @@ AnimateSolarPanel::AnimateSolarPanel()
 }
 
 void AnimateSolarPanel::addKeyframe(int num_bars_on, unsigned int duration_ms, bool show_sun) {
-    // Creates Keyframe from the arguments and add it to the animation.  
-    Keyframe* new_keyframe = new Keyframe;
-    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
+    addKeyframe(num_bars_on, duration_ms, 0, nullptr, show_sun);
+}
+
+void AnimateSolarPanel::addKeyframe(int num_bars_on, unsigned int duration_ms, unsigned int track_index, DfMp3 *dfmp3,
+                                    bool show_sun) {
+    // Creates Keyframe from the arguments and add it to the animation.
+    Keyframe *new_keyframe = new Keyframe;
+    for (int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = i < num_bars_on;
     }
     new_keyframe->show_sun = show_sun;
     new_keyframe->duration_ms = duration_ms;
     new_keyframe->next = nullptr;
+    new_keyframe->track_index = track_index;
+    new_keyframe->dfmp3 = dfmp3;
 
     this->_appendKeyframe(new_keyframe);
 }
 
 void AnimateSolarPanel::addKeyframeFromArray(bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms, bool show_sun) {
-    // Creates Keyframe from the arguments and add it to the animation.  
-    Keyframe* new_keyframe = new Keyframe;
-    for(int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
+    addKeyframeFromArray(bar_status, duration_ms, 0, nullptr, show_sun);
+}
+
+void AnimateSolarPanel::addKeyframeFromArray(bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms,
+                                             unsigned int track_index, DfMp3 *dfmp3, bool show_sun) {
+    // Creates Keyframe from the arguments and add it to the animation.
+    Keyframe *new_keyframe = new Keyframe;
+    for (int i = 0; i < _SOLAR_PANEL_NUM_BARS; i++) {
         new_keyframe->bar_status[i] = bar_status[i];
     }
     new_keyframe->show_sun = show_sun;
     new_keyframe->duration_ms = duration_ms;
-    new_keyframe->next = nullptr;   
+    new_keyframe->next = nullptr;
+    new_keyframe->track_index = track_index;
+    new_keyframe->dfmp3 = dfmp3;
 
     this->_appendKeyframe(new_keyframe);
 }
 
 void AnimateSolarPanel::addPauseKeyframe(unsigned int duration_ms) {
+    addPauseKeyframe(duration_ms, 0, nullptr);
+}
+
+void AnimateSolarPanel::addPauseKeyframe(unsigned int duration_ms, unsigned int track_index, DfMp3 *dfmp3) {
     // Pauses the animation for the given duration. This is done by adding a keyframe with the same bar status as the
     // current keyframe and the given duration.
     // Find the last keyframe
@@ -43,8 +72,6 @@ void AnimateSolarPanel::addPauseKeyframe(unsigned int duration_ms) {
     this->addKeyframeFromArray(keyframe->bar_status, duration_ms);
 }
 
-// Create a function called _appendKeyframe that accepts a keyframe and appends it to the end of the animation. This
-//  is a helper function for the overloaded addKeyframe function.
 void AnimateSolarPanel::_appendKeyframe(Keyframe *new_keyframe) {
     // If the keyframe is the first Keyframe in the animation, set it as the first keyframe and the current keyframe.
     // Otherwise, add it to the end of the animation.
@@ -125,6 +152,11 @@ void AnimateSolarPanel::update() {
             this->last_keyframe = this->current_keyframe;
             // Update bars for start of frame
             this->_updateBars();
+
+            // Play the requested track, if any
+            if (this->current_keyframe->dfmp3 != nullptr) {
+                this->current_keyframe->dfmp3->playMp3FolderTrack(this->current_keyframe->track_index);
+            }
         }
     }
 }
@@ -156,7 +188,8 @@ bool AnimateSolarPanel::isRunning() {
     return this->running; 
 }
 
-void AnimateSolarPanel::updateKeyframe(unsigned int index, bool bar_status[_SOLAR_PANEL_NUM_BARS], unsigned int duration_ms) {
+void AnimateSolarPanel::updateKeyframe(unsigned int index, bool bar_status[_SOLAR_PANEL_NUM_BARS],
+                                       unsigned int duration_ms) {
     // Update the keyframe at the given index with the given values.
     // Create the new keyframe
     Keyframe* new_keyframe = new Keyframe;

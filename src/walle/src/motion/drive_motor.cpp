@@ -1,3 +1,13 @@
+/**
+ * @file drive_motor.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the DriveMotor class, which is used to control a track motor.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "drive_motor.hpp"
 
 DriveMotor::DriveMotor(Adafruit_PWMServoDriver *pca9685, int pin, int min_us, int max_us)

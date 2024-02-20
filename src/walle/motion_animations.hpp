@@ -1,3 +1,14 @@
+/**
+ * @file motion_animations.hpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the declaration of the MotionAnimations namespace, which is used to define and setup
+ * animations for the servo motors. See readme.md for more information on defining animations.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #ifndef MOTION_ANIMATIONS_HPP
 #define MOTION_ANIMATIONS_HPP
 

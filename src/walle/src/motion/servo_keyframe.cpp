@@ -1,3 +1,14 @@
+/**
+ * @file servo_keyframe.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the ServoKeyframe class, which is used to create animations by
+ * chaining together keyframes.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "servo_keyframe.hpp"
 
 ServoKeyframe::ServoKeyframe(unsigned long duration_ms)
@@ -101,7 +112,7 @@ void ServoKeyframe::start_keyframe() {
     }
 }
 
-void ServoKeyframe::update_keyframe() {
+void ServoKeyframe::update() {
     // Check if the function has fired, if not, fire it
     if (_dfmp3 != nullptr && !_track_has_played) {
         _dfmp3->playMp3FolderTrack(_track_index);
@@ -146,7 +157,6 @@ std::string ServoKeyframe::serialize() const {
     // writing directly to SPIFFS. If this becomes a problem, we can change this to write directly to SPIFFS.
     std::string output_str;
     output_str += "duration_ms: " + std::to_string(_duration_ms) + "\n";
-    // TODO: Serialize the function
     // Iterate through the keyframe's servo keyframes and serialize them
     servo_node *current = _servo_head;
     while (current != nullptr) {

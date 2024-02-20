@@ -1,3 +1,14 @@
+/**
+ * @file animate_servo.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the ServoAnimation class, which is used to create and play servo
+ * animations.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "animate_servo.hpp"
 
 ServoAnimation::ServoAnimation()
@@ -82,14 +93,14 @@ void ServoAnimation::update() {
     } // Check if we reached the end of the current keyframe, if so, move to the next keyframe
     else if (millis() - _frame_start_time_ms > _current_keyframe->get_duration()) {
         // Do one last update to make sure we got the tail end of the ramp
-        _current_keyframe->update_keyframe();
+        _current_keyframe->update();
         _current_keyframe = _current_keyframe->get_next();
         _keyframe_has_started = false;
         return;
     }
 
     // Otherwise we're in the middle of a keyframe, update it
-    _current_keyframe->update_keyframe();
+    _current_keyframe->update();
 }
 
 bool ServoAnimation::isPlaying() {

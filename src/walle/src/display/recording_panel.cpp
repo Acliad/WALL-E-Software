@@ -1,3 +1,14 @@
+/**
+ * @file recording_panel.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the RecordingPanel class, which is used to control the display of the
+ * during animation recording.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "recording_panel.hpp"
 
 RecordingPanel::RecordingPanel()

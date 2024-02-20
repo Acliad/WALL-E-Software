@@ -1,3 +1,14 @@
+/**
+ * @file EurostileBold31.h
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the font data for the Eurostile Bold 31 font. This font is used for the display on the
+ * SOLAR CHARGE LEVEL text on the solar panel. Only the required characters for that string are included in this font.
+ * @version 0.1
+ * @date 2024-02-19
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include <pgmspace.h>
 
 const uint8_t EurostileBold31[] PROGMEM = {

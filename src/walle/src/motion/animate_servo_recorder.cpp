@@ -1,3 +1,14 @@
+/**
+ * @file animate_servo_recorder.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation of the ServoAnimationRecorder class, which is used to record servo
+ * animations.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "animate_servo_recorder.hpp"
 
 ServoAnimationRecorder::ServoAnimationRecorder(Display &display, ServoContext &servo_context)
@@ -84,6 +95,9 @@ ServoAnimationRecorder::States ServoAnimationRecorder::getState() {
 }
 
 ServoAnimation *ServoAnimationRecorder::takeAnimation() {
+    if (_state != States::DONE) {
+        return nullptr;
+    }
     ServoAnimation *ret = _animation;
     _animation = nullptr;
     _current_keyframe = nullptr;
@@ -237,12 +251,4 @@ void ServoAnimationRecorder::_saveCurrentKeyframeServos() {
     for (auto &servo : _servos.map) {
         _current_keyframe->add_servo_scalar(servo.second, servo.second->get_current_scalar());
     }
-}
-
-// TODO: Remove?
-void ServoAnimationRecorder::_saveRecording() {
-    // Latest keyframe won't have been saved yet
-    // Add the keyframes to the animation. add_keyframe will find the first keyframe in the list and add the new
-    // keyframe list to the end of the animation
-    // _animation.add_keyframe(_current_keyframe);
 }

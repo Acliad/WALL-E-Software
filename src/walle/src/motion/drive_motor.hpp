@@ -1,13 +1,12 @@
 /**
  * @file drive_motor.hpp
  * @author Isaac Rex (@Acliad)
- * @brief Provides an inteface for controlling WALL-E's track drive motors. This library allows the caller to specify an
- * accerlation value and the library will control the motor's control signals accordingly.
+ * @brief This file contains the declaration of the DriveMotor class, which is used to control a track motor.
  * @version 0.1
- * @date 2023-10-01
- *
- * @copyright Copyright (c) 2023
- *
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
  */
 
 #ifndef DRIVE_MOTOR_HPP
@@ -19,27 +18,78 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Arduino.h>
 
-// TODO: Conver this to inherit from Motor
+
+/**
+ * @brief Class representing a drive motor.
+ * TODO: Convert this to inherit from Motor
+ * This class provides methods to control the speed and parameters of a drive motor.
+ */
 class DriveMotor {
   public:
-    // NOTE: Neutral is assumed to be the center of min_us and max_us. Motor is set to neutral on construction. Does not
-    // call Adafruit_PWMServoDriver's begin() for you, please begin before using. This is to allow for multiple motors
-    // to be controlled by the same PCA9685.
+    /**
+     * @brief Constructs a DriveMotor object. 
+     *
+     * NOTE: Neutral is assumed to be the center of min_us and max_us. Motor is set to neutral on construction. Does not
+     * call Adafruit_PWMServoDriver's begin() for you, please begin before using. This is to allow for multiple motors
+     * to be controlled by the same PCA9685.
+     * 
+     * @param pca9685 Pointer to the Adafruit_PWMServoDriver object used to control the motor.
+     * @param pin The pin number of the motor.
+     * @param min_us The minimum pulse width in microseconds for the motor.
+     * @param max_us The maximum pulse width in microseconds for the motor.
+     */
     DriveMotor(Adafruit_PWMServoDriver *pca9685, int pin, int min_us = 500, int max_us = 2500);
 
-    // Set the speed as a scaller from -1.0 to 1.0
+    /**
+     * @brief Sets the speed of the motor.
+     * 
+     * @param speed The speed of the motor as a scaler value from -1.0 to 1.0.
+     */
     void set_speed(float speed);
 
-    // Sets a scaling factor for the max speed. set_speed_limit(0.5); set_speed(1.0) will result in a speed of 0.5.
+    /**
+     * @brief Sets a scaling factor for the maximum speed as a ratio of the maximum capable speed. This remaps the speed
+     * range from -max_speed to max_speed such that set_speed(1.0) will set the motor to max_speed and set_speed(-1.0)
+     * will set the motor to -max_speed.
+     *
+     * @param max_speed The maximum speed scaling factor.
+     */
     void set_speed_limit(float max_speed);
-    // Setters for parameters
+
+    /**
+     * @brief Sets the acceleration value for the motor.
+     * 
+     * @param acceleration_per_ss The acceleration value in units of speed change per second squared.
+     */
     void set_acceleration(float acceleration_per_ss);
+
+    /**
+     * @brief Sets the deceleration value for the motor.
+     * 
+     * @param deceleration_per_ss The deceleration value in units of speed change per second squared.
+     */
     void set_deceleration(float deceleration_per_ss);
-    // Call this in your main loop. Updates calculated speed for acceleration curves and writes the output to the
-    // pwm_driver. Returns the current speed.
+
+    /**
+     * @brief Updates the motor speed and writes the output to the PWM driver. This method should be called periodically
+     * to update the motor speed.
+     * 
+     * @return The current speed of the motor.
+     */
     float update();
 
+    /**
+     * @brief Gets the current speed of the motor.
+     * 
+     * @return The current speed of the motor.
+     */
     float get_current_speed();
+
+    /**
+     * @brief Gets the speed limit of the motor.
+     * 
+     * @return The speed limit of the motor.
+     */
     float get_speed_limit();
 
   private:
@@ -49,18 +99,32 @@ class DriveMotor {
     int                      _max_us;
     int                      _neutral_us;
     unsigned long            _last_update_ms;
-    // Store acceleration per ms^2 instead of per s^2 so we don't have to do conversions every time we update
     float _acceleration_per_ms;
     float _deceleration_per_ms;
     float _current_speed;
     float _target_speed;
     float _max_speed;
 
-    // Calculates the current speed for the acceleration type
+    /**
+     * @brief Calculates the current speed for the constant acceleration type.
+     */
     void _update_speed_constant_accel();
-    // Helper functions for converting between us and speed
+
+    /**
+     * @brief Converts a speed value to pulse width in microseconds.
+     * 
+     * @param speed The speed value to convert.
+     * @return The pulse width in microseconds.
+     */
     unsigned int _speed_to_us(float speed);
-    float        _us_to_speed(int us);
+
+    /**
+     * @brief Converts a pulse width in microseconds to a speed value.
+     * 
+     * @param us The pulse width in microseconds.
+     * @return The speed value.
+     */
+    float _us_to_speed(int us);
 };
 
 #endif // DRIVE_MOTOR_HPP

@@ -1,3 +1,15 @@
+/**
+ * @file navigation_controller.cpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the implementation for the NavigationController class. This class is used to abstract
+ * controller input into a friendly interface. It uses the BP32 library to interface with the controller and provides
+ * some additional functionality like deadzone mapping and button press/release tracking.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "navigation_controller.hpp"
 
 NavigationController::NavigationController()
@@ -17,6 +29,10 @@ void NavigationController::setDeadzone(int deadzone) {
     // Sets the deadzone for the thumbstick. The thumbstick's values will be remapped such that the value of the
     // deadzone` becomes 0 and the maximum value remains CONTROLLER_THUMBSTICK_MAX (and MIN as appropriate). 
     _deadzone = deadzone;
+}
+
+int NavigationController::getDeadzone() {
+    return _deadzone;
 }
 
 bool NavigationController::upIsPressed() {

@@ -1,3 +1,14 @@
+/**
+ * @file walle.hpp
+ * @author Isaac Rex (@Acliad)
+ * @brief This file contains the main include file for the Walle project. This file includes all other files in the
+ * project, and is used to provide a single include file for the main entry sketch.
+ * @version 0.1
+ * @date 2024-02-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #ifndef WALLE_H
 #define WALLE_H
 
@@ -13,7 +24,7 @@
 #include "display_animations.hpp"
 #include "motion_animations.hpp"
 #include "src/motion/servo_context.hpp"
-#include "src/audio/audio_player.h"
+#include "src/audio/audio_player.hpp"
 #include <Adafruit_PWMServoDriver.h>
 #include <Bluepad32.h>
 #include <Wire.h>
