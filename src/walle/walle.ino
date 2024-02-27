@@ -113,10 +113,10 @@ enum class WallEState {
 WallEState              state = WallEState::NORMAL;
 ServoAnimationRecorder *servo_recorder = nullptr;
 Stats                   loop_stats = Stats(0.99);
-const int               UP_ANIMATION_INDEX = 0;
-const int               RIGHT_ANIMATION_INDEX = 1;
-const int               DOWN_ANIMATION_INDEX = 2;
-const int               LEFT_ANIMATION_INDEX = 3;
+const int               DPAD_UP_INDEX = 0;
+const int               DPAD_RIGHT_INDEX = 1;
+const int               DPAD_DOWN_INDEX = 2;
+const int               DPAD_LEFT_INDEX = 3;
 const int               ANIMATION_MODIFIER_OFFSET = 4;
 // TODO: The current code is such that these animations get deleted when that slot is overwritten. This generally works
 // for dynamically allocated animations, but it causes a crash on statically allocated animations. I.e., the ones
@@ -153,7 +153,7 @@ void setup() {
 
     /*----------- Audio Player ---------------------------*/
     dfmp3.begin();
-    dfmp3.reset(); // Could cause popping; can be removed after development.
+    // dfmp3.reset(); // Could cause popping; can be removed after development.
     audio_num_tracks = dfmp3.getTotalTrackCount(DfMp3_PlaySource_Sd);
     dfmp3.setVolume(DEFAULT_AUDIO_VOLUME);
     // if (TRACK_INDEX_STARTUP) {
@@ -256,12 +256,16 @@ void loop() {
     if (millis() - last_update_time > 800) {
         last_update_time = millis();
 
-        // Serial.println("--------------------------------------------------");
+        Serial.println("--------------------------------------------------");
+        Serial.println("Left Motor Speed: " + String(left_motor_speed));
+        Serial.println("Right Motor Speed: " + String(right_motor_speed));
+        Serial.print("Speed Scaler: ");
+        Serial.println(motor_l.get_speed_limit());
         // Serial.print("Loop time (ms): ");
         // Serial.println(loop_stats.average());
         // Serial.print("Free heap bytes: ");
         // Serial.println(ESP.getFreeHeap());
-        // Serial.println("--------------------------------------------------");
+        Serial.println("--------------------------------------------------");
     }
 }
 
@@ -636,12 +640,16 @@ void playRandomTrack() {
  * @param dt The time interval since the last update.
  */
 void mapInputs(float dt) {
+    bool modifier_pressed = drive_controller.l2IsPressed() || drive_controller.l1IsPressed() ||
+                            aux_controller.l2IsPressed() || aux_controller.l1IsPressed();
     /*----------- Motor Speed ----------------------------*/
-    mapThumbstick(drive_controller.thumbstickX(), -drive_controller.thumbstickY(), &left_motor_speed,
-                  &right_motor_speed);
+    if (!modifier_pressed) {
+        mapThumbstick(drive_controller.thumbstickX(), -drive_controller.thumbstickY(), &left_motor_speed,
+                      &right_motor_speed);
+    }
     if (state == WallEState::NORMAL) {
         if (drive_controller.xWasPressed()) {
-            track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES));
+            track_velocity_profile_idx = max((track_velocity_profile_idx - 1), 0);
             float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
             float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
 
@@ -652,7 +660,7 @@ void mapInputs(float dt) {
         }
 
         if (drive_controller.circleWasPressed()) {
-            track_velocity_profile_idx = max((track_velocity_profile_idx - 1), 0);
+            track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES)-1);
             float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
             float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
 
@@ -666,9 +674,9 @@ void mapInputs(float dt) {
     if (!(aux_controller.l2IsPressed() || drive_controller.l2IsPressed() || drive_controller.l1IsPressed())) {
         // If not relavent modifier is pressed...
         neck_pitch_position =
-            constrain(neck_pitch_position + HEAD_YAW_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
+            constrain(neck_pitch_position + HEAD_PITCH_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);
         neck_yaw_position =
-            constrain(neck_yaw_position + HEAD_PITCH_RATE_PER_S * aux_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
+            constrain(neck_yaw_position + HEAD_YAW_RATE_PER_S * aux_controller.thumbstickXNorm() * dt, -1.0f, 1.0f);
     }
 
     if (aux_controller.l2IsPressed()) {
@@ -709,13 +717,13 @@ void mapInputs(float dt) {
     int animation_index_offset = drive_controller.l2IsPressed() ? ANIMATION_MODIFIER_OFFSET : 0;
     if (state == WallEState::NORMAL) {
         if (drive_controller.upWasPressed()) {
-            servo_player.play(head_animations[UP_ANIMATION_INDEX + animation_index_offset]);
+            servo_player.play(head_animations[DPAD_UP_INDEX + animation_index_offset]);
         } else if (drive_controller.rightWasPressed()) {
-            servo_player.play(head_animations[RIGHT_ANIMATION_INDEX + animation_index_offset]);
+            servo_player.play(head_animations[DPAD_RIGHT_INDEX + animation_index_offset]);
         } else if (drive_controller.downWasPressed()) {
-            servo_player.play(head_animations[DOWN_ANIMATION_INDEX + animation_index_offset]);
+            servo_player.play(head_animations[DPAD_DOWN_INDEX + animation_index_offset]);
         } else if (drive_controller.leftWasPressed()) {
-            servo_player.play(head_animations[LEFT_ANIMATION_INDEX + animation_index_offset]);
+            servo_player.play(head_animations[DPAD_LEFT_INDEX + animation_index_offset]);
         }
         if (drive_controller.thumbstickWasPressed()) {
             servo_player.stop();
@@ -723,14 +731,18 @@ void mapInputs(float dt) {
     }
 
     /*----------- Sounds ---------------------------------*/
-    if (aux_controller.upWasPressed()) {
-        dfmp3.playMp3FolderTrack(audio_track_selection_list[0]);
+    if (state == WallEState::NORMAL && aux_controller.circleWasPressed()) {
+        playRandomTrack();
+    } else if (aux_controller.upWasPressed()) {
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[DPAD_UP_INDEX + animation_index_offset]);
     } else if (aux_controller.rightWasPressed()) {
-        dfmp3.playMp3FolderTrack(audio_track_selection_list[1]);
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[DPAD_RIGHT_INDEX + animation_index_offset]);
     } else if (aux_controller.downWasPressed()) {
-        dfmp3.playMp3FolderTrack(audio_track_selection_list[2]);
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[DPAD_DOWN_INDEX + animation_index_offset]);
     } else if (aux_controller.leftWasPressed()) {
-        dfmp3.playMp3FolderTrack(audio_track_selection_list[3]);
+        dfmp3.playMp3FolderTrack(audio_track_selection_list[DPAD_LEFT_INDEX + animation_index_offset]);
+    } else if (aux_controller.thumbstickWasPressed()) {
+        dfmp3.stop();
     }
 
     /*----------- General ---------------------------------*/
@@ -762,7 +774,7 @@ void mapInputs(float dt) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DONE);
         } else if (drive_controller.upWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
-                save_to_button_index = UP_ANIMATION_INDEX + animation_index_offset;
+                save_to_button_index = DPAD_UP_INDEX + animation_index_offset;
                 if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
                     servo_recorder->setAnimation(head_animations[save_to_button_index]);
                 }
@@ -770,7 +782,7 @@ void mapInputs(float dt) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::UP);
         } else if (drive_controller.rightWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
-                save_to_button_index = RIGHT_ANIMATION_INDEX + animation_index_offset;
+                save_to_button_index = DPAD_RIGHT_INDEX + animation_index_offset;
                 if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
                     servo_recorder->setAnimation(head_animations[save_to_button_index]);
                 }
@@ -778,7 +790,7 @@ void mapInputs(float dt) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::RIGHT);
         } else if (drive_controller.downWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
-                save_to_button_index = DOWN_ANIMATION_INDEX + animation_index_offset;
+                save_to_button_index = DPAD_DOWN_INDEX + animation_index_offset;
                 if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
                     servo_recorder->setAnimation(head_animations[save_to_button_index]);
                 }
@@ -786,7 +798,7 @@ void mapInputs(float dt) {
             recorder_state = servo_recorder->inputEvent(ServoAnimationRecorder::Inputs::DOWN);
         } else if (drive_controller.leftWasPressed()) {
             if (recorder_state == ServoAnimationRecorder::States::ENTRY) {
-                save_to_button_index = LEFT_ANIMATION_INDEX + animation_index_offset;
+                save_to_button_index = DPAD_LEFT_INDEX + animation_index_offset;
                 if (head_animations[save_to_button_index] != nullptr && state == WallEState::RECORDING_EDIT) {
                     servo_recorder->setAnimation(head_animations[save_to_button_index]);
                 }

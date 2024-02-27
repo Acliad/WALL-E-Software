@@ -19,28 +19,28 @@
 *  silkscreen of the module.
 *  -------------------------------------------------------------------*/
 // Drive motors
-#define MOTOR_LEFT_IDX  (0)
-#define MOTOR_RIGHT_IDX (1)
+#define MOTOR_RIGHT_IDX (0)
+#define MOTOR_LEFT_IDX  (1)
 
 // Arm servos
-#define SERVO_SHOULDER_LEFT_IDX  (2)
-#define SERVO_SHOULDER_RIGHT_IDX (3)
+#define SERVO_SHOULDER_RIGHT_IDX (2)
+#define SERVO_SHOULDER_LEFT_IDX  (3)
 
-#define SERVO_ELBOW_LEFT_IDX  (4)
-#define SERVO_ELBOW_RIGHT_IDX (5)
+#define SERVO_ELBOW_RIGHT_IDX (4)
+#define SERVO_ELBOW_LEFT_IDX  (5)
 
-#define SERVO_WRIST_LEFT_IDX  (6)
-#define SERVO_WRIST_RIGHT_IDX (7)
+#define SERVO_WRIST_RIGHT_IDX (6)
+#define SERVO_WRIST_LEFT_IDX  (7)
 
-#define SERVO_HAND_LEFT_IDX   (8)
-#define SERVO_HAND_RIGHT_IDX  (9)
+#define SERVO_HAND_RIGHT_IDX  (8)
+#define SERVO_HAND_LEFT_IDX   (9)
 
 // Head servos
-#define SERVO_NECK_YAW_IDX    (15)
 #define SERVO_NECK_PITCH_IDX  (14)
+#define SERVO_NECK_YAW_IDX    (15)
                         
-#define SERVO_EYE_LEFT_IDX    (13)
 #define SERVO_EYE_RIGHT_IDX   (12)
+#define SERVO_EYE_LEFT_IDX    (13)
 
 /*---- Track Motor Configs --------------------------------------------
 *  The following constants setup parameters for the track motors.
@@ -51,9 +51,9 @@ typedef struct TrackVelocityProfile{
 } TrackVelocityProfile_t;
 
 const TrackVelocityProfile_t TRACK_VELOCITY_PROFILES[] = {
-    { .speed_scaler = 0.1, .acceleration = 1.00 }, // Slow
-    { .speed_scaler = 0.3, .acceleration = 1.25 }, // Normal
-    { .speed_scaler = 0.5, .acceleration = 1.50 }, // Fast
+    { .speed_scaler = 0.4, .acceleration = 1.25 }, // Slow
+    { .speed_scaler = 0.5, .acceleration = 1.50 }, // Normal
+    { .speed_scaler = 0.6, .acceleration = 2.00 }, // Fast
 };
 #define TRACK_VELOCITY_DEFAULT_PROFILE_IDX (1) // Index of the default velocity profile
 
@@ -107,13 +107,16 @@ const TrackVelocityProfile_t TRACK_VELOCITY_PROFILES[] = {
 #define DEFAULT_AUDIO_VOLUME (24) // NOTE: Max volume is 30
 
 // Index of audio tracks by their numbering on the SD card
-#define TRACK_INDEX_STARTUP (1)
-#define TRACK_INDEX_EVE_1   (2)
-#define TRACK_INDEX_SCREAM  (3)
-#define TRACK_INDEX_EVE_2   (4)
-#define TRACK_INDEX_TADA    (5)
-#define TRACK_INDEX_EVE_3   (6)
-#define TRACK_INDEX_WALLE_1 (7)
+#define TRACK_INDEX_STARTUP  (1)
+#define TRACK_INDEX_EVE_1    (2)
+#define TRACK_INDEX_SCREAM   (3)
+#define TRACK_INDEX_EVE_2    (4)
+#define TRACK_INDEX_TADA     (5)
+#define TRACK_INDEX_EVE_3    (6)
+#define TRACK_INDEX_WALLE_1  (7)
+#define TRACK_INDEX_EVE_4    (8)
+#define TRACK_LA_VIE_EN_ROSE (9)
+#define TRACK_DEFINE_DANCING (10)
 
 // The track index to play on WALL-E startup
 #define AUDIO_STARTUP_TRACK (TRACK_INDEX_STARTUP) // NOTE: Set to 0 if you don't want to play anything
@@ -128,16 +131,24 @@ const int audio_track_random_list[] = {
     TRACK_INDEX_TADA,
 };
 
-// List of tracks to bind to controller buttons. The order is: 
+// List of tracks to bind to controller buttons. Primary controller L2 provides an additional 4 options. The order is: 
 // 0: up
 // 1: right
 // 2: down
 // 3: left
+// 4: L2 + up
+// 5: L2 + right
+// 6: L2 + down
+// 7: L2 + left
 const int audio_track_selection_list[] = {
     TRACK_INDEX_EVE_1, // Up
     TRACK_INDEX_TADA, // Right
     TRACK_INDEX_SCREAM, // Down
     TRACK_INDEX_WALLE_1, // Left
+    TRACK_INDEX_EVE_2, // L2 + Up
+    TRACK_INDEX_EVE_3, // L2 + Right
+    TRACK_DEFINE_DANCING, // L2 + Down
+    TRACK_LA_VIE_EN_ROSE, // L2 + Left
 };
 
 
@@ -150,9 +161,9 @@ const int audio_track_selection_list[] = {
 // Rates control how fast the given servo moves when using the controller. The values are in max travel distance per
 // second. For a servo that travels between -90 and 90 degrees with 0 degrees being neutral, a value of 1 would move the
 // servo from 0 to +-90 in one second. For analog sticks, this number maps to the maximum thumbstick positon and is
-// scalled down based on the thumbstick position.
-#define HEAD_YAW_RATE_PER_S   (2.0)
-#define HEAD_PITCH_RATE_PER_S (1.0) 
+// scalled down based on the thumbstick position. Set a value negative to reverse its control direction.
+#define HEAD_YAW_RATE_PER_S   (-1.0)
+#define HEAD_PITCH_RATE_PER_S (2.0) 
 
 #define EYE_MOVE_RATE_PER_S   (2.0)
 
