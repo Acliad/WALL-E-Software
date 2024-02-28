@@ -10,11 +10,11 @@ FILE_DESCRIPTION(
 
 FILE_NAME(
 /* name */ 'Carrier Board Standoff.stp',
-/* time_stamp */ '2024-01-21T13:44:41-06:00',
+/* time_stamp */ '2024-02-28T16:34:07-06:00',
 /* author */ (''),
 /* organization */ (''),
 /* preprocessor_version */ 'ST-DEVELOPER v20',
-/* originating_system */ 'Autodesk Translation Framework v12.14.0.127',
+/* originating_system */ 'Autodesk Translation Framework v12.20.1.177',
 
 /* authorisation */ '');
 
@@ -126,18 +126,18 @@ POSITIVE_RATIO_MEASURE(7850.),#69);
 #106=DIRECTION('ref_axis',(1.,0.,0.));
 #107=CARTESIAN_POINT('',(0.,0.,0.));
 #108=CARTESIAN_POINT('Origin',(0.,0.,0.));
-#109=CARTESIAN_POINT('',(-1.85,-2.2655965784226E-16,5.));
-#110=CARTESIAN_POINT('Origin',(0.,0.,5.));
+#109=CARTESIAN_POINT('',(-1.85,-2.2655965784226E-16,8.));
+#110=CARTESIAN_POINT('Origin',(0.,0.,8.));
 #111=CARTESIAN_POINT('',(-1.85,-2.2655965784226E-16,0.));
 #112=CARTESIAN_POINT('',(-1.85,-2.2655965784226E-16,0.));
 #113=CARTESIAN_POINT('Origin',(0.,0.,0.));
 #114=CARTESIAN_POINT('Origin',(0.,0.,0.));
-#115=CARTESIAN_POINT('',(-3.85,-4.71489017671731E-16,5.));
-#116=CARTESIAN_POINT('Origin',(0.,0.,5.));
+#115=CARTESIAN_POINT('',(-3.85,-4.71489017671731E-16,8.));
+#116=CARTESIAN_POINT('Origin',(0.,0.,8.));
 #117=CARTESIAN_POINT('',(-3.85,-4.71489017671731E-16,0.));
 #118=CARTESIAN_POINT('',(-3.85,-4.71489017671731E-16,0.));
 #119=CARTESIAN_POINT('Origin',(0.,0.,0.));
-#120=CARTESIAN_POINT('Origin',(0.,0.,5.));
+#120=CARTESIAN_POINT('Origin',(0.,0.,8.));
 #121=CARTESIAN_POINT('Origin',(0.,0.,0.));
 #122=UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(0.01),#126,
 'DISTANCE_ACCURACY_VALUE',
@@ -184,16 +184,16 @@ SOLID_ANGLE_UNIT()
 #132=SHAPE_REPRESENTATION('',(#78),#124);
 #133=PRODUCT_DEFINITION_CONTEXT('part definition',#138,'design');
 #134=PRODUCT_DEFINITION('Carrier Board Standoff',
-'Carrier Board Standoff v1',#135,#133);
+'Carrier Board Standoff v2',#135,#133);
 #135=PRODUCT_DEFINITION_FORMATION('',$,#140);
-#136=PRODUCT_RELATED_PRODUCT_CATEGORY('Carrier Board Standoff v1',
-'Carrier Board Standoff v1',(#140));
+#136=PRODUCT_RELATED_PRODUCT_CATEGORY('Carrier Board Standoff v2',
+'Carrier Board Standoff v2',(#140));
 #137=APPLICATION_PROTOCOL_DEFINITION('international standard',
 'automotive_design',2009,#138);
 #138=APPLICATION_CONTEXT(
 'Core Data for Automotive Mechanical Design Process');
 #139=PRODUCT_CONTEXT('part definition',#138,'mechanical');
-#140=PRODUCT('Carrier Board Standoff','Carrier Board Standoff v1',$,(#139));
+#140=PRODUCT('Carrier Board Standoff','Carrier Board Standoff v2',$,(#139));
 #141=PRESENTATION_STYLE_ASSIGNMENT((#142));
 #142=SURFACE_STYLE_USAGE(.BOTH.,#143);
 #143=SURFACE_SIDE_STYLE('',(#144));
