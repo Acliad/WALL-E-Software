@@ -17,6 +17,8 @@
 
 
 namespace MotionAnimations {
+    // Add custom animations here:
+    
     extern ServoAnimation cock_left;
     extern ServoAnimation cock_right;
     extern ServoAnimation sad;

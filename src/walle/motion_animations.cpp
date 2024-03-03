@@ -13,6 +13,7 @@
 
 namespace MotionAnimations {
 // Define new animations here
+
 ServoAnimation cock_left     = ServoAnimation();
 ServoAnimation cock_right    = ServoAnimation();
 ServoAnimation sad           = ServoAnimation();
@@ -21,6 +22,7 @@ ServoAnimation wiggle_eyes   = ServoAnimation();
 
 // Create setup functions for each animation.
 // NOTE: Don't forget to call these functions in setup_animations().
+
 void setup_cock_left(ServoContext servos) {
     // cock_left cocks WALL-E's head to the left by settings the left eye to the minimum angle and the right eye to the
     // max angle
@@ -146,6 +148,9 @@ void setup_wiggle_eyes(ServoContext servos) {
 void setup_animations(ServoContext servos) {
     // This function should get called in the main setup() function. It calls all animation setup functions for use in
     // the main sketch.
+
+    // Add setup functions for new animations here
+
     setup_cock_left(servos);
     setup_cock_right(servos);
     setup_sad(servos);

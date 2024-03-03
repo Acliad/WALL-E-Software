@@ -123,14 +123,14 @@ const int               ANIMATION_MODIFIER_OFFSET = 4;
 // defined at compile time like cock_left, wiggle_eyes, etc. You can still overwrite these and the new recording will 
 // stick, it will just crash and reboot.
 ServoAnimation         *head_animations[] = {
-    nullptr,                         // Up
-    nullptr,                         // Right
-    nullptr,                         // Down
-    nullptr,                         // Left
-    nullptr, // &MotionAnimations::cock_left,    // L2 + Up
-    nullptr, // &MotionAnimations::wiggle_eyes,  // L2 + Right
-    nullptr, // &MotionAnimations::sad,          // L2 + Down
-    nullptr  // &MotionAnimations::curious_track // L2 + Left
+    nullptr, // Up
+    nullptr, // Right
+    nullptr, // Down
+    nullptr, // Left
+    nullptr, // L2 + Up
+    nullptr, // L2 + Right
+    nullptr, // L2 + Down
+    nullptr  // L2 + Left
 };
 ServoPlayer &servo_player = ServoPlayer::getInstance();
 
@@ -649,6 +649,9 @@ void mapInputs(float dt) {
     }
     if (state == WallEState::NORMAL) {
         if (drive_controller.xWasPressed()) {
+            // *****************************
+            // Increase the speed profile to the next in the array
+            // *****************************
             track_velocity_profile_idx = max((track_velocity_profile_idx - 1), 0);
             float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
             float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
@@ -660,6 +663,9 @@ void mapInputs(float dt) {
         }
 
         if (drive_controller.circleWasPressed()) {
+            // *****************************
+            // Decrease the speed profile to the next in the array
+            // *****************************
             track_velocity_profile_idx = min((track_velocity_profile_idx + 1), ARRAY_SIZE(TRACK_VELOCITY_PROFILES)-1);
             float motor_speed_factor = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].speed_scaler;
             float motor_acceleration = TRACK_VELOCITY_PROFILES[track_velocity_profile_idx].acceleration;
@@ -671,7 +677,7 @@ void mapInputs(float dt) {
         }
     }
     /*----------- Head Movement --------------------------*/
-    if (!(aux_controller.l2IsPressed() || drive_controller.l2IsPressed() || drive_controller.l1IsPressed())) {
+    if (!modifier_pressed) {
         // If not relavent modifier is pressed...
         neck_pitch_position =
             constrain(neck_pitch_position + HEAD_PITCH_RATE_PER_S * -aux_controller.thumbstickYNorm() * dt, -1.0f, 1.0f);

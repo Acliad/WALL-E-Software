@@ -103,7 +103,6 @@ const TrackVelocityProfile_t TRACK_VELOCITY_PROFILES[] = {
 /*---- Audio Player Settings -------------------------------------------
 *  Various settings of the Audio Player module.
 *  -------------------------------------------------------------------*/
-#define ENABLE_AUDIO // Comment this line to disable audio player
 #define DEFAULT_AUDIO_VOLUME (24) // NOTE: Max volume is 30
 
 // Index of audio tracks by their numbering on the SD card
